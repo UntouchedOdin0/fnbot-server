@@ -1,5 +1,5 @@
 # fnbot-server
 Cosmetic server created to use with fnbot-client
 
-# Soon
+## Soon
 The server will be published very soon. Stay tuned!
