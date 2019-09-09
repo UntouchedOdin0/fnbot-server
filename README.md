@@ -1,5 +1,5 @@
 # fnbot-server
-fnbot-server stores Fortnite locale strings, textures and assets. It can be used with fnbot-client.
+fnbot-server stores Fortnite locale strings, textures and assets. It should be used with [fnbot-client](https://github.com/Terax235/fnbot-client).
 
 #### Discord
 https://discord.gg/WWSTpbb
