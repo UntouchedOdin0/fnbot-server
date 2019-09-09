@@ -1,6 +1,9 @@
 const ExpressInstance = require("./structures/ExpressApp.js");
 const BuildDumping = require("./structures/BuildDumping.js");
 const fs = require("fs");
+const API = require("./structures/API.js");
+const WarningManager = require("./structures/WarningManager.js");
+
 var config;
 
 let requiredPaths = ["./storage/", "./storage/locales/", "./storage/assets/", "./storage/icons/"];
@@ -62,6 +65,11 @@ new ExpressInstance({ port: config.server.port, title: config.server.title, base
             console.log("[Error] Error while loading assets.json: " + err);
             process.exit(1);
         };
+        try {
+            global.icons = fs.readdirSync("./storage/icons/");
+        } catch (err) {
+            console.log("[Error] Couldn't load icons directory.");
+        };
     };
     if (!skipbuilddump) {
         const FNDump = await BuildDumping.dumpFNBuild(config.builddumping.fnlogs);
@@ -85,4 +93,63 @@ new ExpressInstance({ port: config.server.port, title: config.server.title, base
         console.log("[CommandHandler:Error] " + CommandHandler.error + " => " + CommandHandler.msg);
         return process.exit(1);
     };
+    async function checkFNStatus() {
+        let status = await API.getFortniteServerStatus();
+        let warnings = WarningManager.Warnings;
+        if (status.online && warnings.filter(warn => warn.typeId == "fortnite.servers.offline")[0]) {
+            return WarningManager.deleteWarning(warnings.filter(warn => warn.typeId == "fortnite.servers.offline")[0].id);
+        };
+        if (!status.online && !warnings.filter(warn => warn.typeId == "fortnite.servers.offline")[0]) {
+            return WarningManager.createWarning("fortnite.servers.offline", "Fortnite servers are offline.", undefined, "auto");
+        };
+        return { code: "nothing_changed" };
+    };
+    async function checkWarnFile() {
+        let file = await WarningManager.readWarningFile();
+        let warnings = WarningManager.Warnings;
+        if (file) {
+            var updateCount = 0;
+            warnings.forEach(warning => {
+                if (!file.filter(f => f.id == warning.id)[0]) {
+                    if (warning.creation && warning.creation == "auto") return;
+                    return WarningManager.deleteWarning(warning.id);
+                };
+            });
+            file.forEach(async warning => {
+                let warningContent;
+                if (warnings.filter(w => w.id == warning.id)[0]) {
+                    if (JSON.stringify(warnings.filter(w => w.id == warning.id)[0]) == JSON.stringify(warning)) return;
+                    warningContent = WarningManager.updateWarning(warning.id, warning);
+                    warning.id = warningContent.id;
+                    warnings = WarningManager.Warnings;
+                    return await WarningManager.writeWarningFile(warnings);
+                };
+                warningContent = WarningManager.createWarning(warning.typeId, warning.message, warning.postedBy);
+                warning.id = warningContent.id;
+                updateCount++;
+            });
+            if (updateCount > 0) return await WarningManager.writeWarningFile(warnings);
+        };
+        return { code: "nothing_changed" };
+    };
+    await checkFNStatus();
+    await checkWarnFile();
+    function formatTime(ms) {
+        if (ms >= 1000*60) {
+            return ms/60000 + " minutes";
+        };
+        if (ms >= 1000) {
+            return ms/1000 + " seconds";
+        };
+        return ms + " milliseconds";
+    };
+    if (config.warning_interval < 10000) {
+        console.log("[WarningManager] Interval must be >=10000 to prevent spam and has now been set to 5 minutes.");
+        config.warning_interval = 1000*60*5;
+    };
+    console.log("[WarningManager] Checking updates every " + formatTime(config.warning_interval) + ".");
+    setInterval(async () => {
+        await checkFNStatus();
+        await checkWarnFile();
+    },config.warning_interval || 1000*60*5);
 });
