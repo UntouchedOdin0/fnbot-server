@@ -17,7 +17,7 @@ https://discord.gg/WWSTpbb
 1. Open a terminal and clone this repository. `git clone https://github.com/Terax235/fnbot-server.git`
 2. Go to the folder using the terminal. `cd fnbot-server`
 3. Fill out `config.example.json` with all the required information.
-   - If you just want to host an instance of the server and you don't want to edit the routes (endpoints), don't adit any value in `routeinit`.
+   - If you just want to host an instance of the server and you don't want to edit the routes (endpoints), don't edit any value in `routeinit`.
    - `assetdumping`: These values are used for asset dumping. This only works on Windows. `pakpath` should contain the path to the Fortnite pak folders, like that: `<DISK>:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Content\\Paks`
    - `builddumping`: These values are used for build information dumping (netCL, buildID, UserAgent etc.).
      - `fnlogs`: Path to `FortniteGame.log`, like `<DISK>:\\Users\\<USERNAME>\\AppData\\Local\\FortniteGame\\Saved\\Logs\\FortniteGame.log`
