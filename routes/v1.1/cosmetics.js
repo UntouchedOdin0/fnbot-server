@@ -45,9 +45,10 @@ exports.routes = [{
         name: "/icons/:icon",
         run(req, res) {
             const basepath = process.cwd() + "/storage/icons/";
+            const icons = global.icons;
             if (!req.params.icon) return res.status(404).send("Missing required param icon.");
-            const exists = require("fs").existsSync(basepath + req.params.icon);
-            if (!exists) return res.status(404).send("No results.");
+            if (req.params.icon.split(".")[req.params.icon.split(".").length-1] !== "png") req.params.icon += ".png";
+            if (!icons || !icons[0] || !icons.includes(req.params.icon)) return res.status(404).send("No results.");
             return res.status(200).sendFile(basepath + req.params.icon);
         },
     }
