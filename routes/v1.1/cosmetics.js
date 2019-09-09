@@ -5,8 +5,14 @@ function prepareObject(asset, baseUrl) {
         image: baseUrl + "icons/" + asset.image,
         setParts: asset.setParts || [],
     };
-    if (obj.setParts && obj.setParts[0] && obj.setParts.filter(p => p.type == "backpack" && p.id.split("_").slice(2).join(" ") == obj.id.split("_").slice(5).join(" "))[0]) {
-        obj.setParts.filter(p => p.type == "backpack" && p.id.split("_").slice(2).join(" ") == obj.id.split("_").slice(5).join(" "))[0].matchesSkin = true;
+    if (obj.setParts[0]) {
+        obj.setParts.forEach(part => {
+            if (part.image) return part.image = baseUrl + "icons/" + part.image;
+            return part.image = undefined;
+        });
+        if (obj.setParts.filter(p => p.type == "backpack" && p.id.split("_").slice(2).join(" ") == obj.id.split("_").slice(5).join(" "))[0]) {
+            obj.setParts.filter(p => p.type == "backpack" && p.id.split("_").slice(2).join(" ") == obj.id.split("_").slice(5).join(" "))[0].matchesSkin = true;
+        };
     };
     return obj;
 };
