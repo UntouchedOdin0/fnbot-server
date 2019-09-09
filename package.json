@@ -1,0 +1,33 @@
+{
+  "name": "fnbot-server",
+  "version": "1.1.0",
+  "description": "Cosmetic server, used with fnbot-client.",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.0",
+    "node-wick": "^2.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Terax235/fnbot-server.git"
+  },
+  "keywords": [
+    "fortnite",
+    "fortnite-br",
+    "fnbot-server",
+    "fnbot-client",
+    "nodejs",
+    "expressjs"
+  ],
+  "author": "Terax235",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Terax235/fnbot-server/issues"
+  },
+  "homepage": "https://github.com/Terax235/fnbot-server#readme"
+}

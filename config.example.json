@@ -1,0 +1,20 @@
+{
+    "server": {
+        "port": 8080,
+        "title": "fnbot-server"
+    },
+    "routeinit": {
+        "defaultVersion": "v1.1",
+        "routeLocation": "./routes/",
+        "baseUrl": "/api/"
+    },
+    "assetdumping": {
+        "pakpath": "<DISK>:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Content\\Paks",
+        "locales" : ["de","en","fr","ru","es"],
+        "deleteFilesAfterDump" : true
+    },
+    "builddumping": {
+        "fnlogs": "<DISK>:\\Users\\<USER>\\AppData\\Local\\FortniteGame\\Saved\\Logs\\FortniteGame.log",
+        "launcherlogs" : "<DISK>:\\Users\\<USER>\\AppData\\Local\\EpicGamesLauncher\\Saved\\Logs\\EpicGamesLauncher.log"
+    }
+}
