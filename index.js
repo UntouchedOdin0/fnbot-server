@@ -57,6 +57,11 @@ new ExpressInstance({ port: config.server.port, title: config.server.title, base
         });
         global.assets = Assets;
         fs.writeFileSync("./storage/assets.json", JSON.stringify(Assets));
+        try {
+            global.icons = fs.readdirSync("./storage/icons/");
+        } catch (err) {
+            console.log("[Error] Couldn't load icons directory.");
+        };
         console.log("[AssetDumper] Done.");
     } else {
         try {
