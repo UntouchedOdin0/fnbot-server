@@ -13,12 +13,12 @@ class App {
             port: 8080,
             baseUrl: "/api/",
         };
-        if (options && !options instanceof Object) options = {
+        if (options && typeof options == "string") options = {
             port: parseInt(options) || 8080
         };
         return new Promise((resolve, reject) => {
             app = new express();
-            app.listen(options.port);
+            app.listen(process.env.PORT || options.port);
             if (options.title) app.locals.title = options.title;
             app.use(function (req, res, next) {
                 if (req.originalUrl && req.originalUrl.split(options.baseUrl)[1] && req.originalUrl.split(options.baseUrl)[1].split("/")[0].startsWith("v") && req.originalUrl.split(options.baseUrl)[1].split("/")[0].indexOf(".") > -1) {
@@ -30,7 +30,8 @@ class App {
                 req.baseUrl = req.protocol + "://" + req.get('host') + options.baseUrl;
                 next();
             });
-            app.get("/", function (req, res) {
+            app.all("/", function (req, res) {
+                if (Object.keys(endpoints).length == 0) return res.status(200).json({ statusCode: 200, msg: "Server is currently starting up." });
                 return res.status(200).json({ statusCode: 200, msg: "Server is up and running. You can use this url with fnbot-client." });
             });
             console.log("[ExpressApp] Listening on port " + options.port + ".");
@@ -70,7 +71,8 @@ class App {
                 try {
                     file = require(process.cwd() + "/" + options.routeLocation + dir + "/" + filename);
                 } catch (err) {
-                    console.log("      <FILE:" + filename + "> - Error: " + err);
+                    console.log("      <FILE:" + filename + "> - Error: ");
+                    console.error(err);
                     continue;
                 };
                 if (!file.routes) {

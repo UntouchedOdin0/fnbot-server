@@ -10,8 +10,9 @@
     },
     "assetdumping": {
         "pakpath": "<DISK>:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Content\\Paks",
-        "locales" : ["de","en","fr","ru","es"],
-        "deleteFilesAfterDump" : true
+        "locales" : ["de","en","fr","ru","es","pt-BR","tr","it"],
+        "deleteFilesAfterDump" : true,
+        "dumpIcons" : false
     },
     "builddumping": {
         "fnlogs": "<DISK>:\\Users\\<USER>\\AppData\\Local\\FortniteGame\\Saved\\Logs\\FortniteGame.log",
