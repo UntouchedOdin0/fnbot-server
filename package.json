@@ -1,6 +1,6 @@
 {
   "name": "fnbot-server",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Cosmetic server, used with fnbot-client.",
   "main": "index.js",
   "dependencies": {
@@ -8,6 +8,9 @@
     "node-fetch": "^2.6.0",
     "node-wick": "^2.2.0",
     "uuid": "^3.3.3"
+  },
+  "engines": {
+    "node": "12.11.1"
   },
   "devDependencies": {},
   "scripts": {
