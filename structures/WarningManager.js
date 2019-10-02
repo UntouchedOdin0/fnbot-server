@@ -19,8 +19,6 @@ class WarningManager {
     static updateWarning(id, overwrite) {
         let warning = Warnings.filter(w => w.id == id)[0];
         if (!warning) return { error: "warning_doesnt_exist", msg: "Warning does not exist." };
-        let newid = uuid(warning.typeId + "|" + warning.message + "|" + Date.now(), PREDEFINED_NAMESPACE);
-        warning.id = newid;
         warning.timestamps.updatedAt = new Date();
         Object.keys(overwrite).filter(ov => ov != "id" && ov != "timestamps").forEach(ov => {
             warning[ov] = overwrite[ov];
