@@ -1,6 +1,6 @@
 function calculateAssets(assets) {
     var obj = {};
-    Object.keys(assets).forEach(a => {
+    Object.keys(assets).filter(key => key !== "build").forEach(a => {
         obj[a] = assets[a].length;
     });
     return obj;
