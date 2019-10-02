@@ -14,7 +14,8 @@ https://discord.gg/WWSTpbb
 - [Git](https://git-scm.com/downloads)
 
 ### Setup
-1. Open a terminal and clone this repository. `git clone https://github.com/Terax235/fnbot-server.git`
+1. Open a terminal and clone this repository.
+> If you want to clone the stable version, use `git clone --branch stable https://github.com/Terax235/fnbot-server.git`. If you want to use the master branch (which can be unstable but should be okay), use `git clone --branch master https://github.com/Terax235/fnbot-server.git`
 2. Go to the folder using the terminal. `cd fnbot-server`
 3. Fill out `config.example.json` with all the required information.
    - If you just want to host an instance of the server and you don't want to edit the routes (endpoints), don't edit any value in `routeinit`.
