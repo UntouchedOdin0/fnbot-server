@@ -17,6 +17,22 @@ requiredPaths.forEach(p => {
     };
 });
 
+function handleCmdArgs(argv) {
+    let args = argv.slice(2);
+    var res = {};
+    args.forEach(arg => {
+        if (arg.toLowerCase().startsWith("--") && arg.toLowerCase().split("=")[1]) {
+            res[arg.slice(2).split("=")[0]] = arg.toLowerCase().split("=")[1]
+        };
+        if (arg.toLowerCase().startsWith("-") && !arg.toLowerCase().startsWith("--")) {
+            res[arg.slice(1)] = "---";
+        };
+    });
+    return res;
+};
+
+global.arguments = handleCmdArgs(process.argv);
+
 if (!fs.existsSync("./config.json")) {
     if (fs.existsSync("./config.example.json")) {
         fs.renameSync("./config.example.json", "./config.json");
@@ -59,8 +75,8 @@ async function assetDump() {
         tempAssetFile = require("./storage/assets.json");
     };
     var paks;
-    if (process.argv[2] && process.argv[2].split("=")[0] == "--aes" && process.argv[2].split("=")[1]) {
-        aes = process.argv[2].split("=")[1];
+    if (global.arguments.aes) {
+        aes = global.arguments.aes;
         force = true;
     };
     if (tempAssetFile && global.build.fortnite.build == tempAssetFile.build && !force) {
@@ -108,8 +124,8 @@ async function assetDump() {
     if (hasDumped) console.log("[AssetDumper] Successfully dumped. " + total + " items are now located in storage/assets.json.");
     isDumping = false;
     // Removes aes argument after first dump.
-    if (process.argv[2] && process.argv[2].split("=")[0] == "--aes" && process.argv[2].split("=")[1]) {
-        process.argv[2] = undefined;
+    if (global.arguments.aes) {
+        global.arguments.aes = undefined;
     };
 };
 
@@ -120,11 +136,9 @@ new ExpressInstance({
 } || null).then(async app => {
     ExpressInstance.updateState({ msg: "Server is currently starting up and preparing assets.", code: "preparing" });
     var skipassetdump, skipbuilddump = false;
-    if (process.argv[2]) {
-        if (process.argv[2] == "-skipdump" || process.argv[2] == "-sd") {
-            skipassetdump = true;
-            skipbuilddump = true;
-        };
+    if (global.arguments.skipdump || global.arguments.sd || global.arguments.skipdumping) {
+        skipassetdump = true;
+        skipbuilddump = true;
     };
     if (!config.assetdumping || !config.assetdumping.pakpath) {
         skipassetdump = true;
