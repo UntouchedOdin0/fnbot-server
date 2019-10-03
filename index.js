@@ -113,17 +113,18 @@ async function assetDump() {
         console.log("[Error] Couldn't load storage/assets.json. You must dump assets at least one time before you can run the script without dumping.");
         return process.exit(1);
     };
-    totalAssets = Object.keys(global.assets).filter(key => typeof key == "object").forEach(key => totalAssets+= tempAssetFile[key].length);
+    totalAssets = 0;
+    Object.keys(global.assets).filter(key => typeof key == "object").forEach(key => totalAssets+= tempAssetFile[key].length);
     try {
         global.icons = fs.readdirSync("./storage/icons/");
     } catch (err) {
         console.log("[Error] Couldn't load icons directory.");
     };
-    if (totalAssets.length == 0) {
+    if (totalAssets == 0) {
         console.log("[Error] assets file is empty.");
         return process.exit(1);
     };
-    if (hasDumped) console.log("[AssetDumper] Successfully dumped. " + total + " items are now located in storage/assets.json.");
+    if (hasDumped) console.log("[AssetDumper] Successfully dumped. " + totalAssets + " items are now located in storage/assets.json.");
     isDumping = false;
     // Removes aes argument after first dump.
     if (global.arguments.aes) {
