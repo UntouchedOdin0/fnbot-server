@@ -91,8 +91,8 @@ async function assetDump() {
         };
     };
     var totalAssets = 0;
-    if (tempAssetFile) Object.keys(tempAssetFile).filter(key => typeof key == "object").forEach(key => totalAssets+= tempAssetFile[key].length);
-    if (!tempAssetFile || global.build.fortnite.build !== tempAssetFile.build || (aes && force) || totalAssets == 0) {
+    if (tempAssetFile) totalAssets = tempAssetFile.skins.length + tempAssetFile.emotes.length + tempAssetFile.backpacks.length + tempAssetFile.pickaxes.length;
+    if (!tempAssetFile || global.build.fortnite.build !== tempAssetFile.build || (aes && force) || totalAssets == 0 || global.arguments.forcedump || global.arguments.fd) {
         paks = await AssetDumping.getPakList("all", aes, config.assetdumping.pakpath, force);
         config.assetdumping.build = global.build.fortnite.build;
         if (tempAssetFile && global.build.fortnite.build !== tempAssetFile.build) {
@@ -113,8 +113,7 @@ async function assetDump() {
         console.log("[Error] Couldn't load storage/assets.json. You must dump assets at least one time before you can run the script without dumping.");
         return process.exit(1);
     };
-    totalAssets = 0;
-    Object.keys(global.assets).filter(key => typeof key == "object").forEach(key => totalAssets+= tempAssetFile[key].length);
+    totalAssets = global.assets.skins.length + global.assets.emotes.length + global.assets.backpacks.length + global.assets.pickaxes.length;
     try {
         global.icons = fs.readdirSync("./storage/icons/");
     } catch (err) {
