@@ -79,7 +79,7 @@ async function assetDump() {
         aes = global.arguments.aes;
         force = true;
     };
-    if (tempAssetFile && global.build.fortnite.build == tempAssetFile.build && !force) {
+    if (tempAssetFile && global.build.fortnite.build == tempAssetFile.build && !force && !global.arguments.forcedump || !global.arguments.fd) {
         paks = await AssetDumping.getPakList("encrypted_only", aes, config.assetdumping.pakpath, false);
         config.assetdumping.build = global.build.fortnite.build;
         if (((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) || !paks.encrypted.filter(pak => !cachedPaks.includes(pak.name))[0]) {
