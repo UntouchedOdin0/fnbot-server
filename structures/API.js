@@ -1,6 +1,8 @@
 const fetch = require("node-fetch");
 
-const { ReadConfig } = require("./API/readHotfix.js");
+const {
+    ReadConfig
+} = require("./API/readHotfix.js");
 
 const ENDPOINTS = {
     fortnite: {
@@ -17,11 +19,23 @@ const cache = {
     access_token: undefined,
     expiresAt: undefined,
 };
-const build = global.build || { fortnite: { UserAgent: "Fortnite/++Fortnite+Release-10.40-CL-8970213 Windows/10.0.17134.1.768.64bit" }};
+const build = global.build || {
+    fortnite: {
+        UserAgent: "Fortnite/++Fortnite+Release-10.40-CL-8970213 Windows/10.0.17134.1.768.64bit"
+    }
+};
 
 async function refreshToken() {
     if (cache.access_token && new Date(cache.expiresAt) > new Date()) return cache.access_token;
-    const login = await fetch(ENDPOINTS.fortnite.oauth, { method: "POST", body: "grant_type=client_credentials&token_type=eg1", headers: { "User-Agent": build.fortnite.UserAgent, "Content-Type" : "application/x-www-form-urlencoded", "Authorization" : "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE=" } }).then(res => res.json());
+    const login = await fetch(ENDPOINTS.fortnite.oauth, {
+        method: "POST",
+        body: "grant_type=client_credentials&token_type=eg1",
+        headers: {
+            "User-Agent": build.fortnite.UserAgent,
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "basic MzQ0NmNkNzI2OTRjNGE0NDg1ZDgxYjc3YWRiYjIxNDE6OTIwOWQ0YTVlMjVhNDU3ZmI5YjA3NDg5ZDMxM2I0MWE="
+        }
+    }).then(res => res.json());
     cache.access_token = login.token_type + " " + login.access_token;
     cache.expiresAt = login.expires_at;
     return login.token_type + " " + login.access_token;
@@ -53,32 +67,50 @@ class API {
     };
     static getEncryptionKeys(aes) {
         return new Promise((resolve, reject) => {
-            fetch(ENDPOINTS.benbot.aes).then(res => res.json()).catch(err => {
+            fetch(ENDPOINTS.benbot.aes).catch(err => {
                     if (aes) {
                         console.log("[Warning] Could not fetch AES encryption keys from " + ENDPOINTS.benbot.aes + ". Using the key you've provided in your config.");
-                        return resolve({ mainKey: aes });
+                        return resolve({
+                            mainKey: aes
+                        });
                     };
                     return resolve(null);
                 })
                 .then(res => {
-                    return resolve(res);
+                    if (res.status !== 200) return resolve({
+                        code: res.status,
+                        msg: res.statusText
+                    });
+                    try {
+                        res = res.json();
+                        return resolve(res);
+                    } catch (err) {
+                        return resolve(null);
+                    };
                 });
         });
     };
     static async getHotfix() {
         const token = await refreshToken();
-        const cloudstorage = await fetch(ENDPOINTS.fortnite.cloudstorage, { headers: { "User-Agent": build.fortnite.UserAgent, Authorization: token }}).then(res => res.json());
+        const cloudstorage = await fetch(ENDPOINTS.fortnite.cloudstorage, {
+            headers: {
+                "User-Agent": build.fortnite.UserAgent,
+                Authorization: token
+            }
+        }).then(res => res.json());
         if (!cloudstorage || !cloudstorage[0]) return [];
         if (!cloudstorage.filter(file => file.filename.toLowerCase() == "defaultgame.ini")[0]) return [];
         const hotfix_uri = ENDPOINTS.fortnite.cloudstorage + "/" + cloudstorage.filter(file => file.filename.toLowerCase() == "defaultgame.ini")[0].uniqueFilename;
-        const hotfix = await fetch(hotfix_uri, { headers: { "User-Agent": build.fortnite.UserAgent, Authorization: token }}).then(res => res.text());
+        const hotfix = await fetch(hotfix_uri, {
+            headers: {
+                "User-Agent": build.fortnite.UserAgent,
+                Authorization: token
+            }
+        }).then(res => res.text());
         if (!hotfix) return [];
-        return hotfix.split("\n").filter(v => v.startsWith("+TextReplacements")).map(v => v.slice(18)).map(v => ReadConfig({str: v}));
-    };
-    static async getShop() {
-        const token = await refreshToken();
-        const shop = await fetch("https://fortnite-public-service-prod11.ol.epicgames.com/fortnite/api/storefront/v2/catalog", { headers: { "User-Agent": build.fortnite.UserAgent, Authorization: token }}).then(res => res.json());
-        return shop;
+        return hotfix.split("\n").filter(v => v.startsWith("+TextReplacements")).map(v => v.slice(18)).map(v => ReadConfig({
+            str: v
+        }));
     };
 };
 

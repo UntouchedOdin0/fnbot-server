@@ -118,6 +118,7 @@ new ExpressInstance({
     title: config.server.title,
     baseUrl: config.routeinit.baseUrl
 } || null).then(async app => {
+    ExpressInstance.updateState({ msg: "Server is currently starting up and preparing assets.", code: "preparing" });
     var skipassetdump, skipbuilddump = false;
     if (process.argv[2]) {
         if (process.argv[2] == "-skipdump" || process.argv[2] == "-sd") {
@@ -134,6 +135,7 @@ new ExpressInstance({
     if (!skipbuilddump) {
         await buildDump(true);
     } else {
+        console.log("[BuildDumper] Skipping dump.");
         try {
             global.build = require("./storage/build.json");
         } catch (err) {
@@ -154,6 +156,7 @@ new ExpressInstance({
         };
         await assetDump();
     } else {
+        console.log("[AssetDumper] Skipping dump.");
         try {
             global.assets = require("./storage/assets.json");
         } catch (err) {
@@ -176,6 +179,7 @@ new ExpressInstance({
         console.log("[CommandHandler:Error] " + CommandHandler.error + " => " + CommandHandler.msg);
         return process.exit(1);
     };
+    ExpressInstance.updateState({ code: "ready", msg: "Server is up and running. You can now use it with fnbot-client." });
     async function checkFNStatus() {
         let status = await API.getFortniteServerStatus();
         let warnings = WarningManager.Warnings;

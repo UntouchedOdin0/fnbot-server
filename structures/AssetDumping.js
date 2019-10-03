@@ -22,7 +22,15 @@ class AssetDumping {
         } else {
             keys = await API.getEncryptionKeys(aes);
         };
-        if (!keys || !keys.mainKey) throw "[Error] Couldn't load encryption keys.";
+        if (!keys || !keys.mainKey) {
+            if (keys && keys.code && keys.msg) {
+                keys = "Http status code " + keys.code + ": " + keys.msg;
+            } else {
+                keys = ""
+            };
+            console.log("[Error] Requesting AES keys failed. " + keys);
+            return res;
+        };
         if (type == "all") {
             // Returns all paks, needed if you don't have an existing assets.json.
             var files = fs.readdirSync(pakpath);

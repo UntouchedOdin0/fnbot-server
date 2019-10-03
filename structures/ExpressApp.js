@@ -7,6 +7,10 @@ const endpoints = {};
 const isDirectory = source => fs.statSync(source).isDirectory();
 const isFile = source => fs.statSync(source).isFile();
 
+var baseFunction = function(req, res) {
+    return res.status(200).json({ statusCode: 200, code: "starting", msg: "Server is currently starting up." });
+};
+
 class App {
     constructor(options) {
         if (!options) options = {
@@ -31,8 +35,7 @@ class App {
                 next();
             });
             app.all("/", function (req, res) {
-                if (Object.keys(endpoints).length == 0) return res.status(200).json({ statusCode: 200, msg: "Server is currently starting up." });
-                return res.status(200).json({ statusCode: 200, msg: "Server is up and running. You can use this url with fnbot-client." });
+                return baseFunction(req, res);
             });
             console.log("[ExpressApp] Listening on port " + options.port + ".");
             return resolve(app);
@@ -110,6 +113,14 @@ class App {
             status: "OK",
             endpoints
         };
+    };
+    static updateState(state) {
+        if (!state || !state.msg) return undefined;
+        if (!state.statusCode) state.statusCode = 200;
+        baseFunction = function (req, res) {
+            return res.status(state.statusCode).json({ statusCode: state.statusCode, code: state.code, msg: state.msg })
+        };
+        return "OK";
     };
     static get endpoints() {
         return endpoints;
