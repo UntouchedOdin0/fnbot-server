@@ -29,6 +29,24 @@ if (!fs.existsSync("./config.json")) {
     config = require("./config.json");
 };
 
+async function buildDump(firstTime) {
+    if (firstTime) console.log("[BuildDumper] Dumping build information from logs.");
+    const FNDump = await BuildDumping.dumpFNBuild(config.builddumping.fnlogs);
+    const LauncherDump = await BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs);
+    var obj = {
+        fortnite: FNDump,
+        launcher: LauncherDump
+    };
+    if (global.build && JSON.stringify(obj) == JSON.stringify(global.build)) return;
+    global.build = obj;
+    fs.writeFileSync("./storage/build.json", JSON.stringify(obj));
+    if (firstTime) {
+        console.log("[BuildDumper] Dumped build information, works with " + obj.fortnite.build + ".");
+     } else {
+        console.log("[BuildDumper] Updated build information, works with " + obj.fortnite.build + ".");
+    };
+};
+
 async function assetDump() {
     isDumping = true;
     const AssetDumping = require("./structures/AssetDumping.js");
@@ -114,14 +132,7 @@ new ExpressInstance({
         skipbuilddump = true;
     };
     if (!skipbuilddump) {
-        const FNDump = await BuildDumping.dumpFNBuild(config.builddumping.fnlogs);
-        const LauncherDump = await BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs);
-        var obj = {
-            fortnite: FNDump,
-            launcher: LauncherDump
-        };
-        global.build = obj;
-        fs.writeFileSync("./storage/build.json", JSON.stringify(obj));
+        await buildDump(true);
     } else {
         try {
             global.build = require("./storage/build.json");
@@ -262,6 +273,7 @@ new ExpressInstance({
         await addHotfix();
         await checkFNStatus();
         await checkWarnFile();
+        if (!skipbuilddump) await buildDump();
         if (!skipassetdump) {
             if ((!isDumping || isDumping == false) && !serversOff) await assetDump();
         };
