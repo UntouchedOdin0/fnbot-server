@@ -4,16 +4,7 @@ const {
     ReadConfig
 } = require("./API/readHotfix.js");
 
-const ENDPOINTS = {
-    fortnite: {
-        server_status: "https://lightswitch-public-service-prod06.ol.epicgames.com/lightswitch/api/service/bulk/status?serviceId=Fortnite",
-        cloudstorage: "https://fortnite-public-service-prod11.ol.epicgames.com/fortnite/api/cloudstorage/system",
-        oauth: "https://account-public-service-prod03.ol.epicgames.com/account/api/oauth/token"
-    },
-    benbot: {
-        aes: "http://benbotfn.tk:8080/api/aes",
-    },
-};
+const ENDPOINTS = require("../resources/Endpoints.js");
 
 const cache = {
     access_token: undefined,
@@ -27,7 +18,7 @@ const build = global.build || {
 
 async function refreshToken() {
     if (cache.access_token && new Date(cache.expiresAt) > new Date()) return cache.access_token;
-    const login = await fetch(ENDPOINTS.fortnite.oauth, {
+    const login = await fetch(ENDPOINTS.FORTNITE.OAUTH, {
         method: "POST",
         body: "grant_type=client_credentials&token_type=eg1",
         headers: {
@@ -44,7 +35,7 @@ async function refreshToken() {
 class API {
     static getFortniteServerStatus() {
         return new Promise((resolve, reject) => {
-            fetch(ENDPOINTS.fortnite.server_status).then(res => res.json()).catch(err => {
+            fetch(ENDPOINTS.FORTNITE.LIGHTSWITCH).then(res => res.json()).catch(err => {
                 return resolve({
                     online: false
                 })
@@ -67,9 +58,9 @@ class API {
     };
     static getEncryptionKeys(aes) {
         return new Promise((resolve, reject) => {
-            fetch(ENDPOINTS.benbot.aes).catch(err => {
+            fetch(ENDPOINTS.BENBOT.AES).catch(err => {
                     if (aes) {
-                        console.log("[Warning] Could not fetch AES encryption keys from " + ENDPOINTS.benbot.aes + ". Using the key you've provided in your config.");
+                        console.log("[Warning] Could not fetch AES encryption keys from " + ENDPOINTS.BENBOT.AES + ". Using the key you've provided in your config.");
                         return resolve({
                             mainKey: aes
                         });
@@ -92,7 +83,7 @@ class API {
     };
     static async getHotfix() {
         const token = await refreshToken();
-        const cloudstorage = await fetch(ENDPOINTS.fortnite.cloudstorage, {
+        const cloudstorage = await fetch(ENDPOINTS.FORTNITE.CLOUDSTORAGE, {
             headers: {
                 "User-Agent": build.fortnite.UserAgent,
                 Authorization: token
@@ -100,7 +91,7 @@ class API {
         }).then(res => res.json());
         if (!cloudstorage || !cloudstorage[0]) return [];
         if (!cloudstorage.filter(file => file.filename.toLowerCase() == "defaultgame.ini")[0]) return [];
-        const hotfix_uri = ENDPOINTS.fortnite.cloudstorage + "/" + cloudstorage.filter(file => file.filename.toLowerCase() == "defaultgame.ini")[0].uniqueFilename;
+        const hotfix_uri = ENDPOINTS.FORTNITE.CLOUDSTORAGE + "/" + cloudstorage.filter(file => file.filename.toLowerCase() == "defaultgame.ini")[0].uniqueFilename;
         const hotfix = await fetch(hotfix_uri, {
             headers: {
                 "User-Agent": build.fortnite.UserAgent,
