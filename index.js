@@ -125,10 +125,10 @@ async function assetDump() {
     };
     if (hasDumped) console.log("[AssetDumper] Successfully dumped. " + totalAssets + " items are now located in storage/assets.json.");
     isDumping = false;
-    // Removes aes argument after first dump.
-    if (global.arguments.aes) {
-        global.arguments.aes = undefined;
-    };
+    // Removes dump forcing arguments after first dump.
+    global.arguments.aes = undefined;
+    global.arguments.fd = undefined;
+    global.arguments.forcedump = undefined;
 };
 
 new ExpressInstance({
