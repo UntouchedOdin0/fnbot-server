@@ -59,21 +59,34 @@ async function assetDump() {
     if (!tempAssetFile || global.build.fortnite.build !== tempAssetFile.build || (aes && force)) {
         paks = await AssetDumping.getPakList("all", aes, config.assetdumping.pakpath, force);
         config.assetdumping.build = global.build.fortnite.build;
-        hasDumped = true;
         if (tempAssetFile && global.build.fortnite.build !== tempAssetFile.build) {
             cachedPaks = [];
         };
-        paks.encrypted.forEach(pak => cachedPaks.push(pak.name));
-        await AssetDumping.process(paks, "all", config.assetdumping.pakpath, config.assetdumping);
+        if ((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) {
+            console.log("[AssetDumper] No paks were loaded. If you're using an old version of Fortnite, make sure to provide \"--aes=<key>\" as an argument with the right aes encryption key.");
+        } else {
+            hasDumped = true;
+            paks.encrypted.forEach(pak => cachedPaks.push(pak.name));
+            await AssetDumping.process(paks, "all", config.assetdumping.pakpath, config.assetdumping);
+        };
     };
-    delete require.cache[require.resolve("./storage/assets.json")];
-    global.assets = require("./storage/assets.json");
+    try {
+        delete require.cache[require.resolve("./storage/assets.json")];
+        global.assets = require("./storage/assets.json");
+    } catch (err) {
+        console.log("[Error] Couldn't load storage/assets.json. You must dump assets at least one time before you can run the script without dumping.");
+        return process.exit(1);
+    };
+    var total = global.assets.skins.length + global.assets.emotes.length + global.assets.backpacks.length + global.assets.pickaxes.length;
     try {
         global.icons = fs.readdirSync("./storage/icons/");
     } catch (err) {
         console.log("[Error] Couldn't load icons directory.");
     };
-    var total = global.assets.skins.length + global.assets.emotes.length + global.assets.backpacks.length + global.assets.pickaxes.length;
+    if (total.length == 0) {
+        console.log("[Error] assets file is empty.");
+        return process.exit(1);
+    };
     if (hasDumped) console.log("[AssetDumper] Successfully dumped. " + total + " items are now located in storage/assets.json.");
     isDumping = false;
     // Removes aes argument after first dump.
