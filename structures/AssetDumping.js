@@ -12,7 +12,7 @@ export async function getPakList (type, aes, pakpath, forceAes) {
     encrypted: []
   }
   if (aes && forceAes) {
-    // If param forceAes provided (as true), it'll use the aes key instead of requesting keys.
+    // If param forceAes provided, it'll use the aes key instead of requesting keys.
     keys = {
       mainKey: aes.replace('0x', '')
     }
