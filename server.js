@@ -285,11 +285,12 @@ ExpressInstance.constructor({
     };
     return ms + ' milliseconds'
   };
-  if (config.warning_interval < 10000) {
-    console.log('[WarningManager] Interval must be >=60000 to prevent spam and has now been set to 5 minutes.')
-    config.warning_interval = 300000
+  var interval = config.warning_interval || config.update_interval
+  if (!interval || interval < 10000) {
+    console.log('[Interval] Interval must be >=60000 to prevent spam and has now been set to 5 minutes.')
+    interval = 300000
   };
-  console.log('[WarningManager] Checking updates every ' + formatTime(config.warning_interval) + '.')
+  console.log(('[Interval] Checking for updates every ' + formatTime(interval) + '.').replace('1 minutes', 'minute'))
   setInterval(async () => {
     await addHotfix()
     await checkFNStatus()
@@ -298,5 +299,5 @@ ExpressInstance.constructor({
     if (!skipassetdump) {
       if ((!isDumping || isDumping === false) && !serversOff) await assetDump()
     };
-  }, config.warning_interval || 1000 * 60 * 5)
+  }, interval || 1000 * 60 * 5)
 })
