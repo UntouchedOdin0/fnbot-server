@@ -1,9 +1,9 @@
 import * as fs from 'fs'
 
-import * as ExpressInstance from './structures/ExpressApp.js'
+import * as API from './structures/API.js'
 import * as AssetDumping from './structures/AssetDumping.js'
 import * as BuildDumping from './structures/BuildDumping.js'
-import * as API from './structures/API.js'
+import * as ExpressInstance from './structures/ExpressApp.js'
 import * as WarningManager from './structures/WarningManager.js'
 
 var config
@@ -12,7 +12,7 @@ var cachedPaks = []
 var isDumping = false
 var serversOff = false
 
-const requiredPaths = ['./storage/', './storage/assets/', './storage/icons/']
+const requiredPaths = ['./storage/', './storage/icons/']
 requiredPaths.forEach(p => {
   if (!fs.existsSync(p)) {
     fs.mkdirSync(p)

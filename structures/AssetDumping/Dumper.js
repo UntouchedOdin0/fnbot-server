@@ -1,6 +1,7 @@
+import * as fs from 'fs'
 // eslint-disable-next-line camelcase
 import { Package, PakExtractor, read_texture_to_file } from 'node-wick'
-import * as fs from 'fs'
+
 import * as Helper from './Helper.js'
 import * as LocaleDump from './LocaleDump.js'
 
@@ -54,51 +55,67 @@ export async function process (paks, type, path, options) {
       extractor: extractor
     })))
   })
-  var assetFiles = []
-  var Items = await Helper.filterPaths(cosmetics)
-  console.log('[AssetDumper] Dumping ' + Items.length + ' assets (' + type + ').')
+  var assetFiles = {}
+  var Items = Helper.filterPaths(cosmetics)
+  console.log('[AssetDumper] Caching ' + Items.length + ' assets (' + type + ').')
   for (let i = 0; i < Items.length; i++) {
     const filepath = Items[i]
     const file = filepath.extractor.get_file(filepath.index)
     const filename = filepath.path.split('/').pop().toLowerCase()
-    assetFiles.push(filename)
-    if (fs.existsSync('./storage/assets/' + filename)) continue
-    if (file != null) fs.writeFileSync('./storage/assets/' + filename, file)
+    if (filename.slice(-4) === 'uexp') {
+      if (!assetFiles[filename.slice(0, -5)]) { assetFiles[filename.slice(0, -5)] = {} }
+      assetFiles[filename.slice(0, -5)].uexp = file
+    };
+    if (filename.slice(-5) === 'ubulk') {
+      if (!assetFiles[filename.slice(0, -6)]) { assetFiles[filename.slice(0, -5)] = {} }
+      assetFiles[filename.slice(0, -6)].ubulk = file
+    };
+    if (filename.slice(-6) === 'uasset') {
+      if (!assetFiles[filename.slice(0, -7)]) { assetFiles[filename.slice(0, -7)] = {} }
+      assetFiles[filename.slice(0, -7)].uasset = file
+    };
   };
   console.log('[AssetDumper] Reading data...')
   var datafields = { textures: 0, items: 0, variants: 0 }
-  for (let i = 0; i < assetFiles.length; i++) {
-    const filename = assetFiles[i]
-    if (filename.endsWith('.uexp')) continue
-    const fileAsset = filename.slice(0, -7)
+  Object.keys(assetFiles).forEach(key => {
+    const filename = key
+    const file = assetFiles[key]
+    if (!file.uasset || !file.uexp) return
     let asset = false
     try {
-      asset = new Package('./storage/assets/' + fileAsset)
-    } catch (e) {
-      console.error('Couldn\'t read ' + fileAsset + ': ' + e)
-      continue
+      if (file.ubulk) {
+        asset = new Package(file.uasset, file.uexp, file.ubulk)
+      } else {
+        asset = new Package(file.uasset, file.uexp)
+      };
+    } catch (err) {
+      console.log('Couldn\'t read ' + filename + ': ')
+      console.error(err)
+      return
     };
     const data = asset.get_data()
-    if (!data[0]) continue
+    if (!data[0]) return
     if (data[0].export_type === 'Texture2D' && options.dumpIcons) {
-      const tPath = './storage/icons/' + fileAsset + '.png'
+      const tPath = './storage/icons/' + filename + '.png'
       if (!fs.existsSync(tPath)) {
-        read_texture_to_file('./storage/assets/' + fileAsset, tPath)
+        read_texture_to_file('./storage/assets/' + filename, tPath)
       };
       datafields.textures++
+      return
     };
     if (data[0].ItemVariants && data[0].ItemVariants[0] && data[1]) {
       datafields.variants++
       data.slice(1).forEach(d => {
-        const ProcessedVariants = Helper.processVariants(d, fileAsset, variants)
+        const ProcessedVariants = Helper.processVariants(d, filename, variants)
         variants = ProcessedVariants
       })
+      return
     };
     if (!assets[data[0].export_type]) assets[data[0].export_type] = {}
     const assetdata = Helper.AddAsset(data[0])
-    if (assetdata) assets[data[0].export_type][fileAsset] = assetdata
+    if (assetdata) assets[data[0].export_type][filename] = assetdata
     datafields.items++
-  };
+  })
   console.log('[AssetDumper] Loaded ' + Object.keys(datafields).map(key => datafields[key] + ' ' + key).sort().join(', ') + '.')
   const SortedVariants = {}
   Object.keys(variants).sort().forEach(key => {
@@ -106,8 +123,8 @@ export async function process (paks, type, path, options) {
       variants[key].forEach(v => {
         v.tags.forEach(tag => {
           if (tag.keys) {
-            Object.keys(tag.keys).forEach(key => {
-              tag = getTranslations(tag, key, tag.keys[key], locales)
+            Object.keys(tag.keys).forEach(k => {
+              tag = getTranslations(tag, k, tag.keys[k], locales)
             })
           };
           tag.keys = undefined
