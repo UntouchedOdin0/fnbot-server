@@ -166,16 +166,6 @@ export async function process (paks, type, path, options) {
     skins: finalItems.filter(a => a.id && a.id.startsWith('cid')).sort(),
     build: options.build
   }
-  if (options.deleteFilesAfterDump) {
-    fs.readdir('./storage/assets/', (err, files) => {
-      if (err) throw err
-      for (const file of files) {
-        fs.unlink(require('path').join('./storage/assets/', file), err => {
-          if (err) throw err
-        })
-      };
-    })
-  };
 
   function compare (a, b) {
     if (a.id < b.id) { return -1 };
