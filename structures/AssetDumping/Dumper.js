@@ -4,11 +4,29 @@ import { Package, PakExtractor, read_texture_to_file } from 'node-wick'
 
 import * as Helper from './Helper.js'
 import * as LocaleDump from './LocaleDump.js'
+import * as os from 'os'
 
 var locales = {}
 var assets = {}
 var oldAssets = {}
 var variants = {}
+
+function hasEnoughMem (size = 1.5) {
+  const freemem = formatBytes(os.freemem())
+  if (!freemem) return false
+  if (freemem.element < 3) return false // if the free memory type is lower than GB
+  if (freemem.size < size) return false
+  return true
+}
+
+function formatBytes (bytes, decimals = 1) {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return { size: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), type: sizes[i], element: i }
+}
 
 function getTranslations (asset, type, key, locales) {
   if (!asset) return undefined
@@ -60,6 +78,13 @@ export async function process (paks, type, path, options) {
   var mode = 'memory'
   if (options.mode && options.mode === 'storage') mode = 'storage'
   var modeTypes = { storage: 'Dumping', memory: 'Caching' }
+  if (mode === 'memory') {
+    var enoughmemory = hasEnoughMem(1.5)
+    if (!enoughmemory) {
+      mode = 'storage'
+      console.log('[Warning] You must have at least 1.5 GB of free memory left to cache assets. The script will now instead perform a storage dump.')
+    }
+  };
   console.log('[AssetDumper] ' + modeTypes[mode] + ' ' + Items.length + ' assets (' + type + ').')
   for (let i = 0; i < Items.length; i++) {
     const filepath = Items[i]
