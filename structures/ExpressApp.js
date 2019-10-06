@@ -36,12 +36,20 @@ export function constructor (options) {
       req.baseUrl = req.protocol + '://' + req.get('host') + options.baseUrl
       next()
     })
-    app.listen(process.env.PORT || options.port, undefined, () => {
+    app.listen(process.env.PORT || options.port, () => {
       app.all('/', function (req, res) {
         return baseFunction(req, res)
       })
       console.log('[ExpressApp] Listening on port ' + options.port + '.')
       return resolve(app)
+    }).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error('[Error:ExpressApp] Port ' + err.port + ' is already used. You must use a different port or stop applications that use this port.')
+        process.exit(1)
+      } else {
+        console.error(err)
+        process.exit(1)
+      };
     })
   })
 };
