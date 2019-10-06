@@ -32,7 +32,11 @@ export const routes = [{
     res.status(200).json({
       state: 'online',
       defaultVersion: global.defaultVersion,
-      fortniteVersion: build.fortnite.UserAgent.split('Release-')[1].split('-')[0],
+      fortniteVersion: {
+        splitStr: build.fortnite.build.split('Release-')[1].split('-')[0],
+        build: build.fortnite.build
+      },
+      startedAt: global.instanceInfo.startedAt,
       assetsLoaded: calculateAssets(global.assets)
     })
   },
