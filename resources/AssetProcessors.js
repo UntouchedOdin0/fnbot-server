@@ -3,14 +3,13 @@ export const PATHS = [
   'Athena/Items/Cosmetics/Characters',
   'Athena/Items/Cosmetics/Dances',
   'Athena/Items/Cosmetics/Pickaxes',
-  'Athena/Items/CosmeticVariantTokens',
   'Athena/Heroes',
   'UI/Foundation/Textures/Icons/Backpacks',
   'UI/Foundation/Textures/Icons/Emotes',
   'UI/Foundation/Textures/Icons/Weapons/Items',
   'UI/Foundation/Textures/Icons/Heroes/Athena/Soldier',
-  'UI/Foundation/Textures/Icons/Heroes/Progressive',
-  'UI/Foundation/Textures/Icons/Heroes/Variants'
+  'UI/Foundation/Textures/Icons/Heroes/Progressive'
+  // 'UI/Foundation/Textures/Icons/Heroes/Variants' not used yet
 ]
 
 export const AssetProcessors = {
