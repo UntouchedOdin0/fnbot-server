@@ -41,6 +41,12 @@ if (!fs.existsSync('./config.json')) {
   config = require('./config.json')
 };
 
+config.routeinit = {
+  defaultVersion: 'v1.1',
+  routeLocation: './routes/',
+  baseUrl: '/api/'
+}
+
 const requiredPaths = ['./storage/', './storage/icons/']
 if (config.assetdumping && config.assetdumping.mode && config.assetdumping.mode === 'storage') {
   requiredPaths.push('./storage/assets/')
