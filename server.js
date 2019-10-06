@@ -12,13 +12,6 @@ var cachedPaks = []
 var isDumping = false
 var serversOff = false
 
-const requiredPaths = ['./storage/', './storage/icons/']
-requiredPaths.forEach(p => {
-  if (!fs.existsSync(p)) {
-    fs.mkdirSync(p)
-  };
-})
-
 function handleCmdArgs (argv) {
   const args = argv.slice(2)
   var res = {}
@@ -34,6 +27,7 @@ function handleCmdArgs (argv) {
 };
 
 global.arguments = handleCmdArgs(process.argv)
+global.instanceInfo = {}
 
 if (!fs.existsSync('./config.json')) {
   if (fs.existsSync('./config.example.json')) {
@@ -46,6 +40,16 @@ if (!fs.existsSync('./config.json')) {
 } else {
   config = require('./config.json')
 };
+
+const requiredPaths = ['./storage/', './storage/icons/']
+if (config.assetdumping && config.assetdumping.mode && config.assetdumping.mode === 'storage') {
+  requiredPaths.push('./storage/assets/')
+}
+requiredPaths.forEach(p => {
+  if (!fs.existsSync(p)) {
+    fs.mkdirSync(p)
+  };
+})
 
 async function buildDump (firstTime) {
   if (firstTime) console.log('[BuildDumper] Dumping build information from logs.')
@@ -197,6 +201,7 @@ ExpressInstance.constructor({
     return process.exit(1)
   };
   ExpressInstance.updateState({ code: 'ready', msg: 'Server is up and running. You can now use it with fnbot-client.' })
+  global.instanceInfo.startedAt = new Date()
   async function checkFNStatus () {
     const status = await API.getFortniteServerStatus()
     const warnings = WarningManager.Warnings
