@@ -5,8 +5,10 @@ import ReadConfig from './API/readHotfix.js'
 
 const cache = {
   access_token: undefined,
-  expiresAt: undefined
+  expiresAt: undefined,
+  timeout_request: undefined
 }
+
 const build = global.build || {
   fortnite: {
     UserAgent:
@@ -73,6 +75,10 @@ export async function getFortniteServerStatus () {
 }
 
 export async function getEncryptionKeys (aes) {
+  if (cache.timeout_request) {
+    if (new Date(cache.timeout_request) > new Date()) return { type: 'auto_timeout' }
+    cache.timeout_request = undefined
+  }
   return new Promise((resolve, reject) => {
     fetch(ENDPOINTS.BENBOT.AES)
       .catch(err => {
@@ -83,7 +89,8 @@ export async function getEncryptionKeys (aes) {
         }
         var msg = err.message
         if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
-          msg = 'benbot API seems to be offline. Got an ' + err.code + ' error.'
+          msg = 'benbot API seems to be offline. Got an ' + err.code + ' error. Now blocking requests to it for 30 minutes.'
+          cache.timeout_request = new Date().getTime() + 30 * 60 * 1000 // adding 30 minutes to time
         }
         return resolve({ code: err.code, msg })
       })

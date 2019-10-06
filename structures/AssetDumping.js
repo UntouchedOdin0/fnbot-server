@@ -20,6 +20,9 @@ export async function getPakList (type, aes, pakpath, forceAes) {
     keys = await API.getEncryptionKeys(aes)
   };
   if (!keys || !keys.mainKey) {
+    if (keys.type && keys.type === 'auto_timeout') {
+      return res
+    }
     if (keys && keys.code && keys.msg) {
       keys = 'Error code ' + keys.code + ': ' + keys.msg
     } else {
