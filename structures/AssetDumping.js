@@ -21,7 +21,7 @@ export async function getPakList (type, aes, pakpath, forceAes) {
   };
   if (!keys || !keys.mainKey) {
     if (keys && keys.code && keys.msg) {
-      keys = 'Http status code ' + keys.code + ': ' + keys.msg
+      keys = 'Error code ' + keys.code + ': ' + keys.msg
     } else {
       keys = ''
     };
