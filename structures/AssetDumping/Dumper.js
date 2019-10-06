@@ -57,36 +57,57 @@ export async function process (paks, type, path, options) {
   })
   var assetFiles = {}
   var Items = Helper.filterPaths(cosmetics)
-  console.log('[AssetDumper] Caching ' + Items.length + ' assets (' + type + ').')
+  var mode = 'memory'
+  if (options.mode && options.mode === 'storage') mode = 'storage'
+  var modeTypes = { storage: 'Dumping', memory: 'Caching' }
+  console.log('[AssetDumper] ' + modeTypes[mode] + ' ' + Items.length + ' assets (' + type + ').')
   for (let i = 0; i < Items.length; i++) {
     const filepath = Items[i]
     const file = filepath.extractor.get_file(filepath.index)
     const filename = filepath.path.split('/').pop().toLowerCase()
-    if (filename.slice(-4) === 'uexp') {
-      if (!assetFiles[filename.slice(0, -5)]) { assetFiles[filename.slice(0, -5)] = {} }
-      assetFiles[filename.slice(0, -5)].uexp = file
+    if (mode === 'memory') {
+      if (filename.slice(-4) === 'uexp') {
+        if (!assetFiles[filename.slice(0, -5)]) { assetFiles[filename.slice(0, -5)] = {} }
+        assetFiles[filename.slice(0, -5)].uexp = file
+      };
+      if (filename.slice(-5) === 'ubulk') {
+        if (!assetFiles[filename.slice(0, -6)]) { assetFiles[filename.slice(0, -5)] = {} }
+        assetFiles[filename.slice(0, -6)].ubulk = file
+      };
+      if (filename.slice(-6) === 'uasset') {
+        if (!assetFiles[filename.slice(0, -7)]) { assetFiles[filename.slice(0, -7)] = {} }
+        assetFiles[filename.slice(0, -7)].uasset = file
+      };
+      continue
     };
-    if (filename.slice(-5) === 'ubulk') {
-      if (!assetFiles[filename.slice(0, -6)]) { assetFiles[filename.slice(0, -5)] = {} }
-      assetFiles[filename.slice(0, -6)].ubulk = file
-    };
-    if (filename.slice(-6) === 'uasset') {
-      if (!assetFiles[filename.slice(0, -7)]) { assetFiles[filename.slice(0, -7)] = {} }
-      assetFiles[filename.slice(0, -7)].uasset = file
+    if (mode === 'storage') {
+      var fp = './storage/assets/' + filename
+      if (filename.slice(-6) === 'uasset') {
+        assetFiles[filename.slice(0, -7)] = { path: filename }
+      };
+      if (fs.existsSync(fp)) { continue }
+      if (file != null) fs.writeFileSync(fp, file)
+      continue
     };
   };
   console.log('[AssetDumper] Reading data...')
   var datafields = { textures: 0, items: 0, variants: 0 }
   Object.keys(assetFiles).forEach(key => {
     const filename = key
-    const file = assetFiles[key]
-    if (!file.uasset || !file.uexp) return
+    var file = assetFiles[key]
+    delete assetFiles[key]
+    if (!file.path && (!file.uasset || !file.uexp)) return
     let asset = false
     try {
       if (file.ubulk) {
         asset = new Package(file.uasset, file.uexp, file.ubulk)
       } else {
-        asset = new Package(file.uasset, file.uexp)
+        if (file.path) {
+          if (file.path.endsWith('.uexp') || file.path.endsWith('.ubulk')) return
+          asset = new Package('./storage/assets/' + file.path.slice(0, -7))
+        } else {
+          asset = new Package(file.uasset, file.uexp)
+        }
       };
     } catch (err) {
       console.log('Couldn\'t read ' + filename + ': ')
@@ -116,6 +137,16 @@ export async function process (paks, type, path, options) {
     if (assetdata) assets[data[0].export_type][filename] = assetdata
     datafields.items++
   })
+  if (mode === 'storage') {
+    fs.readdir('./storage/assets/', (err, files) => {
+      if (err) throw err
+      for (const file of files) {
+        fs.unlink(require('path').join('./storage/assets/', file), err => {
+          if (err) throw err
+        })
+      };
+    })
+  };
   console.log('[AssetDumper] Loaded ' + Object.keys(datafields).map(key => datafields[key] + ' ' + key).sort().join(', ') + '.')
   const SortedVariants = {}
   Object.keys(variants).sort().forEach(key => {
