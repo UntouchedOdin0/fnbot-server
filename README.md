@@ -7,6 +7,7 @@ https://discord.gg/WWSTpbb
 
 ## Installation
 > If you don't have much experience with [Node.js](https://nodejs.org/en/), you should not try to setup this server since it requires you to have some experience.
+
 https://github.com/Terax235/fnbot-server/wiki/Installation
 
 ## Dependencies
