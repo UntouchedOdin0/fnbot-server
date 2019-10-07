@@ -8,10 +8,10 @@ export function dumpFNBuild (path) {
     }
   }
   try {
-    var Data = fs.readFileSync(path, {
+    const Data = fs.readFileSync(path, {
       encoding: 'utf8'
     })
-    var prepareObj = {
+    const prepareObj = {
       buildID: '1:1:' + Data.split('Net CL: ')[1].split('\r\n')[0],
       netCL: Data.split('Net CL: ')[1].split('\r\n')[0],
       build: Data.split('Build: ')[1].split('\r\n')[0],
@@ -36,7 +36,7 @@ export function dumpLauncherBuild (path) {
     const Data = fs.readFileSync(path, {
       encoding: 'utf8'
     })
-    var prepareObj = {
+    const prepareObj = {
       build: Data.split('Build: ')[1].split('\r\n')[0],
       engineVersion: Data.split('Engine Version: ')[1].split('\r\n')[0],
       netCL: Data.split('Net CL: ')[1].split('\r\n')[0]
