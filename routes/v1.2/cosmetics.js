@@ -1,8 +1,8 @@
-var Assets = {
+const Assets = {
   ...global.assets
 }
 
-var tlist = {
+const tlist = {
   backpack: 'backpacks',
   emote: 'emotes',
   pickaxe: 'pickaxes',
@@ -13,7 +13,7 @@ var tlist = {
   bid: 'backpacks',
   pic: 'pickaxes'
 }
-var types = type => {
+const types = type => {
   if (!Object.keys(tlist).includes(type) && !Object.values(tlist).includes(type)) return null
   return tlist[type] || type
 }
@@ -39,7 +39,7 @@ export const routes = [{
     if (!req.headers || !req.headers.type) return res.status(400).json({ statusCode: 400, msg: 'Missing header type' })
     if (!types(req.headers.type)) return res.status(400).json({ statusCode: 400, msg: 'Invalid type' })
     const type = types(req.headers.type)
-    var Match = (
+    let Match = (
       Assets[type].filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] || // Name match
       Assets[type].filter(a => a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
     )
@@ -96,12 +96,12 @@ export const routes = [{
     const item = Assets[type].filter(a => a.id === req.headers.item.toLowerCase())[0]
     if (!item) return res.status(404).json({ statusCode: 404, data: null, msg: 'invalid_item' })
     if (!item.variants || !item.variants[0]) return res.status(404).json({ statusCode: 404, data: null, msg: 'no_results' })
-    var Match = (
+    const Match = (
       item.variants.filter(t => t.tags.filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0])[0] || // Name match
       item.variants.filter(t => t.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0])[0] // ID match
     )
     if (Match) {
-      var MatchTag = (
+      const MatchTag = (
         Match.tags.filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] ||
                     Match.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0]
       )

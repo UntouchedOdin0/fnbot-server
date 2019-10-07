@@ -1,13 +1,13 @@
 import express from 'express'
 import * as fs from 'fs'
 
-var app = null
+let app = null
 const endpoints = {}
 
 const isDirectory = source => fs.statSync(source).isDirectory()
 const isFile = source => fs.statSync(source).isFile()
 
-var baseFunction = function (req, res) {
+let baseFunction = function (req, res) {
   return res.status(200).json({ statusCode: 200, code: 'starting', msg: 'Server is currently starting up.' })
 }
 
@@ -67,8 +67,8 @@ export function InitCommandHandler (options) {
       msg: 'Please initialize app first.'
     }
   }
-  var defaultVersion = options.defaultVersion
-  var directories = fs.readdirSync(options.routeLocation).filter(f => isDirectory(options.routeLocation + f))
+  const defaultVersion = options.defaultVersion
+  const directories = fs.readdirSync(options.routeLocation).filter(f => isDirectory(options.routeLocation + f))
   if (!directories[0]) {
     return {
       error: 'no_route_dirs',
@@ -88,7 +88,7 @@ export function InitCommandHandler (options) {
     if (!files[0]) return console.log('      => Could not find any valid files.')
     endpoints[dir] = []
     const baseUrl = options.baseUrl || ''
-    for (var filename of files) {
+    for (const filename of files) {
       let file
       const nameWithoutExtension = filename.split('.').slice(0, filename.split('.').length - 1).join('.')
       try {
@@ -111,7 +111,7 @@ export function InitCommandHandler (options) {
         console.log('      <' + nameWithoutExtension + '> - Information: Skipping file because it is deactivated.')
       };
       console.log(('      <' + nameWithoutExtension + '> Loading ' + file.routes.length + ' endpoints.').replace('1 endpoints', '1 endpoint'))
-      for (var endpoint of file.routes) {
+      for (const endpoint of file.routes) {
         if (!endpoint.name || !endpoint.run) continue
         try {
           if (!endpoint.method) endpoint.method = 'all'
@@ -127,7 +127,7 @@ export function InitCommandHandler (options) {
       };
     };
   })
-  var count = 0
+  let count = 0
   Object.keys(endpoints).forEach(e => { count += endpoints[e].length })
   console.log('[CommandHandler] Initialized. Total endpoints: ' + count)
   global.defaultVersion = defaultVersion

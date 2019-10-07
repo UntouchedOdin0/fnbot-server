@@ -6,15 +6,15 @@ import * as BuildDumping from './structures/BuildDumping.js'
 import * as ExpressInstance from './structures/ExpressApp.js'
 import * as WarningManager from './structures/WarningManager.js'
 
-var config
+let config
 
-var cachedPaks = []
-var isDumping = false
-var serversOff = false
+let cachedPaks = []
+let isDumping = false
+let serversOff = false
 
 function handleCmdArgs (argv) {
   const args = argv.slice(2)
-  var res = {}
+  const res = {}
   args.forEach(arg => {
     if (arg.toLowerCase().startsWith('--') && arg.toLowerCase().split('=')[1]) {
       res[arg.slice(2).split('=')[0]] = arg.toLowerCase().split('=')[1]
@@ -59,9 +59,9 @@ requiredPaths.forEach(p => {
 
 async function buildDump (firstTime) {
   if (firstTime) console.log('[BuildDumper] Dumping build information from logs.')
-  const FNDump = await BuildDumping.dumpFNBuild(config.builddumping.fnlogs)
-  const LauncherDump = await BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs)
-  var obj = {
+  const FNDump = BuildDumping.dumpFNBuild(config.builddumping.fnlogs)
+  const LauncherDump = BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs)
+  const obj = {
     fortnite: FNDump,
     launcher: LauncherDump
   }
@@ -77,15 +77,15 @@ async function buildDump (firstTime) {
 
 async function assetDump () {
   isDumping = true
-  var aes
-  var force = false
-  var hasDumped = false
+  let aes
+  let force = false
+  let hasDumped = false
   const assetsExist = fs.existsSync('./storage/assets.json')
-  var tempAssetFile
+  let tempAssetFile
   if (assetsExist) {
     tempAssetFile = require('./storage/assets.json')
   };
-  var paks
+  let paks
   if (global.arguments.aes) {
     aes = global.arguments.aes
     force = true
@@ -96,12 +96,12 @@ async function assetDump () {
     if (((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) || !paks.encrypted.filter(pak => !cachedPaks.includes(pak.name))[0]) {
       hasDumped = false
     } else {
-      paks.encrypted.forEach(pak => cachedPaks.push(pak.name))
+      paks.encrypted.filter(pak => !cachedPaks.includes(pak.name)).forEach(pak => cachedPaks.push(pak.name))
       hasDumped = true
       await AssetDumping.process(paks, 'encrypted_only', config.assetdumping.pakpath, config.assetdumping)
     };
   };
-  var totalAssets = 0
+  let totalAssets = 0
   if (tempAssetFile) totalAssets = tempAssetFile.skins.length + tempAssetFile.emotes.length + tempAssetFile.backpacks.length + tempAssetFile.pickaxes.length
   if (!tempAssetFile || global.build.fortnite.build !== tempAssetFile.build || (aes && force) || totalAssets === 0 || global.arguments.forcedump || global.arguments.fd) {
     paks = await AssetDumping.getPakList('all', aes, config.assetdumping.pakpath, force)
@@ -113,7 +113,7 @@ async function assetDump () {
       console.log('[AssetDumper] No paks were loaded. If you\'re using an old version of Fortnite, make sure to provide \'--aes=<key>\' as an argument with the right aes encryption key.')
     } else {
       hasDumped = true
-      paks.encrypted.forEach(pak => cachedPaks.push(pak.name))
+      paks.encrypted.filter(pak => !cachedPaks.includes(pak.name)).forEach(pak => cachedPaks.push(pak.name))
       await AssetDumping.process(paks, 'all', config.assetdumping.pakpath, config.assetdumping)
     };
   };
@@ -137,9 +137,9 @@ async function assetDump () {
   if (hasDumped) console.log('[AssetDumper] Successfully dumped. ' + totalAssets + ' items are now located in storage/assets.json.')
   isDumping = false
   // Removes dump forcing arguments after first dump.
-  global.arguments.aes = undefined
-  global.arguments.fd = undefined
-  global.arguments.forcedump = undefined
+  delete global.arguments.aes
+  delete global.arguments.fd
+  delete global.arguments.forcedump
 };
 
 ExpressInstance.constructor({
@@ -148,7 +148,7 @@ ExpressInstance.constructor({
   baseUrl: config.routeinit.baseUrl
 } || null).then(async app => {
   ExpressInstance.updateState({ msg: 'Server is currently starting up and preparing assets.', code: 'preparing' })
-  var skipassetdump; var skipbuilddump = false
+  let skipassetdump; let skipbuilddump = false
   if (global.arguments.skipdump || global.arguments.sd || global.arguments.skipdumping) {
     skipassetdump = true
     skipbuilddump = true
@@ -227,7 +227,7 @@ ExpressInstance.constructor({
     const file = await WarningManager.readWarningFile()
     let warnings = WarningManager.Warnings
     if (file) {
-      var updateCount = 0
+      let updateCount = 0
       warnings.forEach(warning => {
         if (!file.filter(f => f.id === warning.id)[0]) {
           if (warning.creation && warning.creation === 'auto') return
@@ -255,10 +255,10 @@ ExpressInstance.constructor({
   };
   async function addHotfix () {
     const HotfixData = await API.getHotfix()
-    var newAssets = {
+    const newAssets = {
       ...global.assets
     }
-    var changes = []
+    const changes = []
     Object.keys(newAssets).filter(key => typeof newAssets[key] === 'object').forEach(k => {
       newAssets[k].filter(asset => asset.keys).forEach(asset => {
         Object.keys(asset.keys).forEach(key => {
@@ -296,16 +296,17 @@ ExpressInstance.constructor({
     };
     return ms + ' milliseconds'
   };
-  var interval = config.warning_interval || config.update_interval
+  let interval = config.warning_interval || config.update_interval
   if (!interval || interval < 10000) {
     console.log('[Interval] Interval must be >=60000 to prevent spam and has now been set to 5 minutes.')
     interval = 300000
   };
   console.log(('[Interval] Checking for updates every ' + formatTime(interval) + '.').replace('1 minutes', 'minute'))
   setInterval(async () => {
-    await addHotfix()
+    // await addHotfix()
     await checkFNStatus()
     await checkWarnFile()
+    console.log(new Date() + ' ping ' + require('os').freemem())
     if (!skipbuilddump) await buildDump()
     if (!skipassetdump) {
       if ((!isDumping || isDumping === false) && !serversOff) await assetDump()

@@ -6,10 +6,10 @@ import * as Helper from './Helper.js'
 import * as LocaleDump from './LocaleDump.js'
 import * as os from 'os'
 
-var locales = {}
-var assets = {}
-var oldAssets = {}
-var variants = {}
+let locales = {}
+const assets = {}
+let oldAssets = {}
+let variants = {}
 
 function hasEnoughMem (size = 1.5) {
   const freemem = formatBytes(os.freemem())
@@ -51,13 +51,13 @@ function getTranslations (asset, type, key, locales) {
 export async function process (paks, type, path, options) {
   if (!paks || !type || !path) return undefined
   if (!options) options = {}
-  var extractors = []
+  const extractors = []
   if (type !== 'all') {
     const exists = fs.existsSync('./storage/assets.json')
     if (exists) oldAssets = require('../../storage/assets.json')
   };
   if (paks.main && paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]) {
-    var pak = paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]
+    const pak = paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]
     locales = await LocaleDump.default({
       path: path + pak.name,
       key: (pak.key).replace('0x', '')
@@ -65,7 +65,7 @@ export async function process (paks, type, path, options) {
   };
   paks.main.forEach(pak => extractors.push(new PakExtractor(path + pak.name, (pak.key).replace('0x', ''))))
   paks.encrypted.forEach(pak => extractors.push(new PakExtractor(path + pak.name, (pak.key).replace('0x', ''))))
-  var cosmetics = []
+  let cosmetics = []
   extractors.forEach(extractor => {
     cosmetics = cosmetics.concat(extractor.get_file_list().map((file, idx) => ({
       path: file.replace('FortniteGame/Content/', ''),
@@ -73,13 +73,13 @@ export async function process (paks, type, path, options) {
       extractor: extractor
     })))
   })
-  var assetFiles = {}
-  var Items = Helper.filterPaths(cosmetics)
-  var mode = 'memory'
+  const assetFiles = {}
+  const Items = Helper.filterPaths(cosmetics)
+  let mode = 'memory'
   if (options.mode && options.mode === 'storage') mode = 'storage'
-  var modeTypes = { storage: 'Dumping', memory: 'Caching' }
+  const modeTypes = { storage: 'Dumping', memory: 'Caching' }
   if (mode === 'memory') {
-    var enoughmemory = hasEnoughMem(1.5)
+    const enoughmemory = hasEnoughMem(1.5)
     if (!enoughmemory) {
       mode = 'storage'
       console.log('[Warning] You must have at least 1.5 GB of free memory left to cache assets. The script will now instead perform a storage dump.')
@@ -106,7 +106,7 @@ export async function process (paks, type, path, options) {
       continue
     };
     if (mode === 'storage') {
-      var fp = './storage/assets/' + filename
+      const fp = './storage/assets/' + filename
       if (filename.slice(-6) === 'uasset') {
         assetFiles[filename.slice(0, -7)] = { path: filename }
       };
@@ -116,10 +116,10 @@ export async function process (paks, type, path, options) {
     };
   };
   console.log('[AssetDumper] Reading data...')
-  var datafields = { textures: 0, items: 0, variants: 0 }
+  const datafields = { textures: 0, items: 0, variants: 0 }
   Object.keys(assetFiles).forEach(key => {
     const filename = key
-    var file = assetFiles[key]
+    const file = assetFiles[key]
     delete assetFiles[key]
     if (!file.path && (!file.uasset || !file.uexp)) return
     let asset = false
@@ -199,7 +199,7 @@ export async function process (paks, type, path, options) {
       })
     };
   };
-  var types = {
+  const types = {
     cid: 'skin',
     eid: 'emote',
     bid: 'backpack',

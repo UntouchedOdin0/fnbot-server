@@ -2,13 +2,13 @@
 import { PakExtractor, read_locale } from 'node-wick'
 
 export default function dump (pak, loc) {
-  var locales = {}
+  const locales = {}
   const pakextractor = new PakExtractor(pak.path, pak.key)
   const pak0list = pakextractor.get_file_list().map((v, idx) => ({
     path: v,
     index: idx
   }))
-  var Locales = pak0list.filter(i => i.path.includes('Localization/Game_BR/') && i.path.includes('.locres'))
+  let Locales = pak0list.filter(i => i.path.includes('Localization/Game_BR/') && i.path.includes('.locres'))
   if (loc && loc instanceof Array && loc[0]) {
     Locales = Locales.filter(l => loc.includes(l.path.split('Localization/Game_BR/')[1].split('/')[0]))
   };

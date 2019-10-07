@@ -8,7 +8,7 @@ export function dumpFNBuild (path) {
     }
   }
   try {
-    const Data = fs.readFileSync(path, {
+    var Data = fs.readFileSync(path, {
       encoding: 'utf8'
     })
     var prepareObj = {

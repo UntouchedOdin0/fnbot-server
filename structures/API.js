@@ -69,7 +69,7 @@ export async function getEncryptionKeys (aes) {
           console.log('[Warning] Could not fetch AES encryption keys from ' + ENDPOINTS.BENBOT.AES + ". Using the key you've provided in your config.")
           return resolve({ mainKey: aes })
         }
-        var msg = err.message
+        let msg = err.message
         if (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT') {
           msg = 'benbot API seems to be offline. Got an ' + err.code + ' error. Now blocking requests to it for 30 minutes.'
           cache.timeout_request = new Date().getTime() + 30 * 60 * 1000 // adding 30 minutes to time

@@ -1,5 +1,5 @@
 function calculateAssets (assets) {
-  var obj = {
+  const obj = {
     total: 0
   }
   Object.keys(assets).filter(key => key !== 'build').forEach(a => {

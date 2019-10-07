@@ -13,7 +13,7 @@ function prepareObject (asset, baseUrl) {
   return obj
 };
 
-var types = {
+const types = {
   skins: 'skins',
   emotes: 'emotes',
   backpacks: 'backpacks',
@@ -34,7 +34,7 @@ export const routes = [{
                 global.assets[type].filter(a => a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
     )
     if (Match) {
-      var results = prepareObject(Match, req.baseUrl)
+      const results = prepareObject(Match, req.baseUrl)
       return res.status(200).json(results)
     };
     return res.status(200).json({

@@ -1,5 +1,5 @@
 function calculateAssets (assets) {
-  var obj = {}
+  const obj = {}
   Object.keys(assets).filter(key => key !== 'build').forEach(a => {
     obj[a] = assets[a].length
   })
@@ -9,7 +9,7 @@ function calculateAssets (assets) {
 export const routes = [{
   name: '/status',
   run (req, res) {
-    var tmpobj = {
+    const tmpobj = {
       fortniteOptions: global.build.fortnite,
       launcherOptions: global.build.launcher
     }
@@ -25,7 +25,7 @@ export const routes = [{
 {
   name: '/build',
   run (req, res) {
-    var tmpobj = {
+    const tmpobj = {
       fortniteOptions: global.build.fortnite,
       launcherOptions: global.build.launcher
     }

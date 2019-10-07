@@ -1,6 +1,6 @@
 import * as WarningManager from '../../structures/WarningManager.js'
 
-var build = {
+const build = {
   fortnite: {
     build: global.build.fortnite.build,
     engineBuild: global.build.fortnite.engineBuild,
@@ -16,7 +16,7 @@ var build = {
 }
 
 function calculateAssets (assets) {
-  var obj = {
+  const obj = {
     total: 0
   }
   Object.keys(assets).filter(key => key !== 'build').forEach(a => {

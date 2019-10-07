@@ -6,8 +6,8 @@ import * as Helper from './AssetDumping/Helper.js'
 
 export async function getPakList (type, aes, pakpath, forceAes) {
   if (!type) return undefined
-  var keys
-  var res = {
+  let keys
+  const res = {
     main: [],
     encrypted: []
   }
@@ -33,16 +33,16 @@ export async function getPakList (type, aes, pakpath, forceAes) {
   };
   if (type === 'all') {
     // Returns all paks, needed if you don't have an existing assets.json.
-    var files = fs.readdirSync(pakpath)
+    const files = fs.readdirSync(pakpath)
     files.filter(f => f.endsWith('.pak')).sort().map(async file => {
       try {
         const ex = new PakExtractor(pakpath + file, (keys.mainKey).replace('0x', ''))
-        var cosmetics = ex.get_file_list().map((file, idx) => ({
+        const cosmetics = ex.get_file_list().map((file, idx) => ({
           path: file.replace('FortniteGame/Content/', ''),
           index: idx,
           extractor: ex
         }))
-        var filtered = Helper.filterPaths(cosmetics)
+        const filtered = Helper.filterPaths(cosmetics)
         if (filtered.length > 0) {
           res.main.push({
             type: 'main',
