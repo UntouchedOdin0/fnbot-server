@@ -2,6 +2,8 @@ import * as fs from 'fs'
 // eslint-disable-next-line camelcase
 import { Package, PakExtractor, read_texture_to_file } from 'node-wick'
 
+import { getAssets } from '../FileManager.js'
+
 import * as Helper from './Helper.js'
 import * as LocaleDump from './LocaleDump.js'
 import * as os from 'os'
@@ -53,7 +55,7 @@ export async function process (paks, type, path, options) {
   const extractors = []
   if (type !== 'all') {
     const exists = fs.existsSync('./storage/assets.json')
-    if (exists) oldAssets = require('../../storage/assets.json')
+    if (exists) oldAssets = getAssets()
   };
   if (paks.main && paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]) {
     const pak = paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]
