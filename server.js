@@ -303,7 +303,7 @@ ExpressInstance.constructor({
   };
   console.log(('[Interval] Checking for updates every ' + formatTime(interval) + '.').replace('1 minutes', 'minute'))
   setInterval(async () => {
-    // await addHotfix()
+    await addHotfix()
     await checkFNStatus()
     await checkWarnFile()
     console.log(new Date() + ' ping ' + require('os').freemem())
