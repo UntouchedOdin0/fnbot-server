@@ -1,24 +1,41 @@
-let build = require('../storage/build.json')
-let assets = require('../storage/assets.json')
+import * as fs from 'fs'
+
+let assets
+let build
+let config
+
+export function getAssets () {
+  if (!assets) {
+    this.reloadAssets()
+  }
+  return assets
+};
 
 export function getBuild () {
+  if (!build) {
+    this.reloadBuild()
+  }
   return build
 };
 
-export function getAssets () {
+export function getConfig () {
+  if (!config) {
+    this.reloadConfig()
+  }
+  return config
+};
+
+export function reloadAssets () {
+  assets = JSON.parse(fs.readFileSync(process.cwd() + '/storage/assets.json', { encoding: 'utf8' }))
   return assets
 };
 
 export function reloadBuild () {
-  build = undefined
-  delete require.cache['../storage/build.json']
-  build = require('../storage/build.json')
+  build = JSON.parse(fs.readFileSync(process.cwd() + '/storage/build.json', { encoding: 'utf8' }))
   return build
 };
 
-export function reloadAssets () {
-  assets = undefined
-  delete require.cache['../storage/assets.json']
-  assets = require('../storage/assets.json')
-  return assets
+export function reloadConfig () {
+  config = JSON.parse(fs.readFileSync(process.cwd() + '/config.json', { encoding: 'utf8' }))
+  return config
 };

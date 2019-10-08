@@ -4,6 +4,7 @@ import * as API from './structures/API.js'
 import * as AssetDumping from './structures/AssetDumping.js'
 import * as BuildDumping from './structures/BuildDumping.js'
 import * as ExpressInstance from './structures/ExpressApp.js'
+import * as FileManager from './structures/FileManager.js'
 import * as WarningManager from './structures/WarningManager.js'
 
 let config
@@ -32,13 +33,13 @@ global.instanceInfo = {}
 if (!fs.existsSync('./config.json')) {
   if (fs.existsSync('./config.example.json')) {
     fs.renameSync('./config.example.json', './config.json')
-    config = require('./config.json')
+    config = FileManager.getConfig()
   } else {
     console.log('[FSError] No configuration file has been found.')
     process.exit(1)
   };
 } else {
-  config = require('./config.json')
+  config = FileManager.getConfig()
 };
 
 config.routeinit = {
@@ -50,7 +51,7 @@ config.routeinit = {
 const requiredPaths = ['./storage/', './storage/icons/']
 if (config.assetdumping && config.assetdumping.mode && config.assetdumping.mode === 'storage') {
   requiredPaths.push('./storage/assets/')
-}
+};
 requiredPaths.forEach(p => {
   if (!fs.existsSync(p)) {
     fs.mkdirSync(p)
@@ -75,22 +76,21 @@ async function buildDump (firstTime) {
   };
 };
 
-async function assetDump () {
+async function assetDump (firstDump) {
   isDumping = true
   let aes
   let force = false
   let hasDumped = false
-  const assetsExist = fs.existsSync('./storage/assets.json')
-  let tempAssetFile
-  if (assetsExist) {
-    tempAssetFile = require('./storage/assets.json')
+  let assets
+  if (fs.existsSync('./storage/assets.json')) {
+    assets = FileManager.getAssets()
   };
   let paks
   if (global.arguments.aes) {
     aes = global.arguments.aes
     force = true
   };
-  if (tempAssetFile && global.build.fortnite.build === tempAssetFile.build && !force && !global.arguments.forcedump && !global.arguments.fd) {
+  if (assets && global.build.fortnite.build === assets.build && !force && !global.arguments.forcedump && !global.arguments.fd) {
     paks = await AssetDumping.getPakList('encrypted_only', aes, config.assetdumping.pakpath, false)
     config.assetdumping.build = global.build.fortnite.build
     if (((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) || !paks.encrypted.filter(pak => !cachedPaks.includes(pak.name))[0]) {
@@ -102,11 +102,11 @@ async function assetDump () {
     };
   };
   let totalAssets = 0
-  if (tempAssetFile) totalAssets = tempAssetFile.skins.length + tempAssetFile.emotes.length + tempAssetFile.backpacks.length + tempAssetFile.pickaxes.length
-  if (!tempAssetFile || global.build.fortnite.build !== tempAssetFile.build || (aes && force) || totalAssets === 0 || global.arguments.forcedump || global.arguments.fd) {
+  if (assets) totalAssets = assets.skins.length + assets.emotes.length + assets.backpacks.length + assets.pickaxes.length
+  if (!assets || global.build.fortnite.build !== assets.build || (aes && force) || totalAssets === 0 || global.arguments.forcedump || global.arguments.fd) {
     paks = await AssetDumping.getPakList('all', aes, config.assetdumping.pakpath, force)
     config.assetdumping.build = global.build.fortnite.build
-    if (tempAssetFile && global.build.fortnite.build !== tempAssetFile.build) {
+    if (assets && global.build.fortnite.build !== assets.build) {
       cachedPaks = []
     };
     if ((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) {
@@ -118,15 +118,18 @@ async function assetDump () {
     };
   };
   try {
-    delete require.cache[require.resolve('./storage/assets.json')]
-    global.assets = require('./storage/assets.json')
+    if (hasDumped || firstDump) {
+      global.assets = FileManager.reloadAssets()
+    };
   } catch (err) {
     console.log('[Error] Couldn\'t load storage/assets.json. You must dump assets at least one time before you can run the script without dumping.')
     return process.exit(1)
   };
   totalAssets = global.assets.skins.length + global.assets.emotes.length + global.assets.backpacks.length + global.assets.pickaxes.length
   try {
-    global.icons = fs.readdirSync('./storage/icons/')
+    if (hasDumped || firstDump) {
+      global.icons = fs.readdirSync('./storage/icons/')
+    }
   } catch (err) {
     console.log('[Error] Couldn\'t load icons directory.')
   };
@@ -164,7 +167,7 @@ ExpressInstance.constructor({
   } else {
     console.log('[BuildDumper] Skipping dump.')
     try {
-      global.build = require('./storage/build.json')
+      global.build = FileManager.reloadBuild()
     } catch (err) {
       console.log('[Error] Error while loading build.json: ' + err)
       process.exit(1)
@@ -181,11 +184,11 @@ ExpressInstance.constructor({
         config.assetdumping.pakpath = config.assetdumping.pakpath + '\\'
       };
     };
-    await assetDump()
+    await assetDump(true)
   } else {
     console.log('[AssetDumper] Skipping dump.')
     try {
-      global.assets = require('./storage/assets.json')
+      global.assets = FileManager.getAssets()
     } catch (err) {
       console.log('[Error] Error while loading assets.json: ' + err)
       process.exit(1)
@@ -255,6 +258,7 @@ ExpressInstance.constructor({
   };
   async function addHotfix () {
     const HotfixData = await API.getHotfix()
+    if (!HotfixData[0]) return
     const newAssets = {
       ...global.assets
     }

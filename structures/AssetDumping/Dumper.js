@@ -6,18 +6,13 @@ import * as Helper from './Helper.js'
 import * as LocaleDump from './LocaleDump.js'
 import * as os from 'os'
 
-let locales = {}
-const assets = {}
-let oldAssets = {}
-let variants = {}
-
 function hasEnoughMem (size = 1.5) {
   const freemem = formatBytes(os.freemem())
   if (!freemem) return false
   if (freemem.element < 3) return false // if the free memory type is lower than GB
   if (freemem.size < size) return false
   return true
-}
+};
 
 function formatBytes (bytes, decimals = 1) {
   if (bytes === 0) return '0 Bytes'
@@ -26,7 +21,7 @@ function formatBytes (bytes, decimals = 1) {
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return { size: parseFloat((bytes / Math.pow(k, i)).toFixed(dm)), type: sizes[i], element: i }
-}
+};
 
 function getTranslations (asset, type, key, locales) {
   if (!asset) return undefined
@@ -49,6 +44,10 @@ function getTranslations (asset, type, key, locales) {
 };
 
 export async function process (paks, type, path, options) {
+  const assets = {}
+  let oldAssets = {}
+  let locales = {}
+  let variants = {}
   if (!paks || !type || !path) return undefined
   if (!options) options = {}
   const extractors = []
@@ -58,10 +57,7 @@ export async function process (paks, type, path, options) {
   };
   if (paks.main && paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]) {
     const pak = paks.main.filter(pak => pak.name === 'pakchunk0-WindowsClient.pak')[0]
-    locales = await LocaleDump.default({
-      path: path + pak.name,
-      key: (pak.key).replace('0x', '')
-    }, options.locales)
+    locales = LocaleDump.default({ path: path + pak.name, key: (pak.key).replace('0x', '') }, options.locales)
   };
   paks.main.forEach(pak => extractors.push(new PakExtractor(path + pak.name, (pak.key).replace('0x', ''))))
   paks.encrypted.forEach(pak => extractors.push(new PakExtractor(path + pak.name, (pak.key).replace('0x', ''))))

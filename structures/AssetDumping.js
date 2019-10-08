@@ -31,50 +31,42 @@ export async function getPakList (type, aes, pakpath, forceAes) {
     console.log('[Error] Requesting AES keys (type ' + type + ') failed. ' + keys)
     return res
   };
-  if (type === 'all') {
-    // Returns all paks, needed if you don't have an existing assets.json.
-    const files = fs.readdirSync(pakpath)
-    files.filter(f => f.endsWith('.pak')).sort().map(async file => {
-      try {
-        const ex = new PakExtractor(pakpath + file, (keys.mainKey).replace('0x', ''))
-        const cosmetics = ex.get_file_list().map((file, idx) => ({
-          path: file.replace('FortniteGame/Content/', ''),
-          index: idx,
-          extractor: ex
-        }))
-        const filtered = Helper.filterPaths(cosmetics)
-        if (filtered.length > 0) {
+  // Returns all paks, needed if you don't have an existing assets.json.
+  const files = fs.readdirSync(pakpath)
+  var filterFunction = file => file.endsWith('.pak')
+  if (type === 'encrypted_only') filterFunction = file => file.endsWith('.pak') && keys.additionalKeys && keys.additionalKeys[file]
+  files.filter(filterFunction).sort().map(async file => {
+    try {
+      var key = (keys.mainKey).replace('0x', '')
+      if (keys.additionalKeys && keys.additionalKeys[file]) {
+        key = (keys.additionalKeys[file]).replace('0x', '')
+      };
+      const ex = new PakExtractor(pakpath + file, (key).replace('0x', ''))
+      const cosmetics = ex.get_file_list().map((file, idx) => ({
+        path: file.replace('FortniteGame/Content/', ''),
+        index: idx,
+        extractor: ex
+      }))
+      const filtered = Helper.filterPaths(cosmetics)
+      if (filtered.length > 0) {
+        if (keys.additionalKeys && keys.additionalKeys[file]) {
+          res.encrypted.push({
+            type: 'encrypted',
+            name: file,
+            key: keys.additionalKeys[file]
+          })
+        } else {
           res.main.push({
             type: 'main',
             name: file,
             key: keys.mainKey
           })
         };
-      } catch (err) {
-        return
       };
-    })
-    if (keys.additionalKeys) {
-      Object.keys(keys.additionalKeys).forEach(key => {
-        res.encrypted.push({
-          type: 'encrypted',
-          name: key,
-          key: keys.additionalKeys[key]
-        })
-      })
+    } catch (err) {
+      return
     };
-  };
-  if (type === 'encrypted_only') {
-    if (keys.additionalKeys) {
-      Object.keys(keys.additionalKeys).forEach(key => {
-        res.encrypted.push({
-          type: 'encrypted',
-          name: key,
-          key: keys.additionalKeys[key]
-        })
-      })
-    };
-  };
+  })
   return res
 };
 export async function process (paks, type, path, options) {
