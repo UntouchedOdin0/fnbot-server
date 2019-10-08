@@ -306,7 +306,6 @@ ExpressInstance.constructor({
     await addHotfix()
     await checkFNStatus()
     await checkWarnFile()
-    console.log(new Date() + ' ping ' + require('os').freemem())
     if (!skipbuilddump) await buildDump()
     if (!skipassetdump) {
       if ((!isDumping || isDumping === false) && !serversOff) await assetDump()
