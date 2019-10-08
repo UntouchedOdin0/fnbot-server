@@ -1,20 +1,5 @@
 import * as WarningManager from '../../structures/WarningManager.js'
 
-const build = {
-  fortnite: {
-    build: global.build.fortnite.build,
-    engineBuild: global.build.fortnite.engineBuild,
-    netCL: global.build.fortnite.netCL,
-    buildID: global.build.fortnite.buildID,
-    UserAgent: global.build.fortnite.UserAgent
-  },
-  launcher: {
-    build: global.build.launcher.build,
-    engineVersion: global.build.launcher.engineVersion,
-    netCL: global.build.launcher.netCL
-  }
-}
-
 function calculateAssets (assets) {
   const obj = {
     total: 0
@@ -33,8 +18,8 @@ export const routes = [{
       state: 'online',
       defaultVersion: global.defaultVersion,
       fortniteVersion: {
-        splitStr: build.fortnite.build.split('Release-')[1].split('-')[0],
-        build: build.fortnite.build
+        splitStr: global.build.fortnite.build.split('Release-')[1].split('-')[0],
+        build: global.build.fortnite.build
       },
       startedAt: global.instanceInfo.startedAt,
       assetsLoaded: calculateAssets(global.assets)
@@ -45,7 +30,7 @@ export const routes = [{
 {
   name: '/build',
   run (req, res) {
-    res.status(200).json(build)
+    res.status(200).json(global.build)
   },
   description: 'Returns netCL and buildID.'
 },

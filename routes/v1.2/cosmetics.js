@@ -103,7 +103,7 @@ export const routes = [{
     if (Match) {
       const MatchTag = (
         Match.tags.filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] ||
-                    Match.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0]
+        Match.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0]
       )
       return res.status(200).json({ statusCode: 200, data: { parent: item.id, channel: Match.channel, tag: MatchTag.tag, name: MatchTag.name } })
     };

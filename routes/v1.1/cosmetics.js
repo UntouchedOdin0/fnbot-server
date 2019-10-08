@@ -31,7 +31,7 @@ export const routes = [{
     const type = types[req.headers.type]
     const Match = (
       global.assets[type].filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] || // Name match
-                global.assets[type].filter(a => a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
+      global.assets[type].filter(a => a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
     )
     if (Match) {
       const results = prepareObject(Match, req.baseUrl)
