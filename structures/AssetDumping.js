@@ -28,7 +28,7 @@ export async function getPakList (type, aes, pakpath, forceAes) {
     } else {
       keys = ''
     };
-    console.log('[Error] Requesting AES keys (type ' + type + ') failed. ' + keys)
+    console.log('[API:Warning] (' + new Date() + ') Requesting AES keys (type ' + type + ') failed. ' + keys)
     return res
   };
   // Returns all paks, needed if you don't have an existing assets.json.
