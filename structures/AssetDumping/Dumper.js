@@ -142,7 +142,7 @@ export async function process (paks, type, path, options) {
     if (data[0].export_type === 'Texture2D' && options.dumpIcons) {
       const tPath = './storage/icons/' + filename + '.png'
       if (!fs.existsSync(tPath)) {
-        read_texture_to_file('./storage/assets/' + filename, tPath)
+        read_texture_to_file('./storage/icons/' + filename, tPath)
       };
       datafields.textures++
       return
