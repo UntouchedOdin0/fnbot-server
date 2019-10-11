@@ -24,6 +24,6 @@ export default function dump (pak, loc) {
       locales[filepath.path.split('Localization/Game_BR/')[1].split('/')[0]] = formattedObj
     };
   };
-  console.log('[LocaleDumper] ' + Object.keys(locales).length + ' locales loaded: ' + Object.keys(locales).map(key => key).sort().join(', '))
+  console.log('  => Loaded ' + Object.keys(locales).length + ' locales: ' + Object.keys(locales).map(key => key).sort().join(', '))
   return locales
 }

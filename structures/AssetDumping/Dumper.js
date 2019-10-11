@@ -45,7 +45,7 @@ function getTranslations (asset, type, key, locales) {
   return asset
 };
 
-export async function process (paks, type, path, options) {
+export async function processDump (paks, type, path, options) {
   const assets = {}
   let oldAssets = {}
   let locales = {}
@@ -83,7 +83,7 @@ export async function process (paks, type, path, options) {
       console.log('[Warning] You must have at least 1.5 GB of free memory left to cache assets. The script will now instead perform a storage dump.')
     }
   };
-  console.log('[AssetDumper] ' + modeTypes[mode] + ' ' + Items.length + ' assets (' + type + ').')
+  console.log('  => ' + modeTypes[mode] + ' ' + Items.length + ' assets (' + type + ').')
   for (let i = 0; i < Items.length; i++) {
     const filepath = Items[i]
     const file = filepath.extractor.get_file(filepath.index)
@@ -113,7 +113,7 @@ export async function process (paks, type, path, options) {
       continue
     };
   };
-  console.log('[AssetDumper] Reading data...')
+  console.log('  => Reading data...')
   const datafields = { textures: 0, items: 0, variants: 0 }
   Object.keys(assetFiles).forEach(key => {
     const filename = key
@@ -173,7 +173,7 @@ export async function process (paks, type, path, options) {
       };
     })
   };
-  console.log('[AssetDumper] Loaded ' + Object.keys(datafields).map(key => datafields[key] + ' ' + key).sort().join(', ') + '.')
+  console.log('  => Filtering ' + Object.keys(datafields).map(key => datafields[key] + ' ' + key).sort().join(', ') + '.')
   const SortedVariants = {}
   Object.keys(variants).sort().forEach(key => {
     if (variants[key].filter(v => v.tags)[0]) {
@@ -223,21 +223,28 @@ export async function process (paks, type, path, options) {
     skins: finalItems.filter(a => a.id && a.id.startsWith('cid')).sort(),
     build: options.build
   }
-
   function compare (a, b) {
     if (a.id < b.id) { return -1 };
     if (a.id > b.id) { return 1 };
     return 0
   };
-  Object.keys(data).filter(key => typeof data[key] === 'object').forEach(key => {
-    if (oldAssets && type !== 'all') {
+  if (oldAssets && type !== 'all') {
+    Object.keys(data).filter(key => typeof data[key] === 'object').forEach(key => {
       oldAssets[key].forEach(asset => {
         if (data[key].filter(a => a.id === asset.id)[0]) return
         data[key].push(asset)
       })
-    }
-    data[key] = data[key].sort(compare)
-  })
+      data[key] = data[key].sort(compare)
+    })
+  };
   fs.writeFileSync('./storage/assets.json', JSON.stringify(data))
+  const PATHS = { win32: 'storage\\assets.json', linux: 'storage/assets.json' }
+  const assetFilePath = PATHS[process.platform]
+  const itemLength = data.backpacks.length + data.emotes.length + data.pickaxes.length + data.skins.length
+  if (type === 'all') {
+    console.log('  => Wrote ' + itemLength + ' items to ' + assetFilePath)
+  } else {
+    console.log('  => Added ' + finalItems.length + ' items to ' + assetFilePath)
+  };
   return data
 };

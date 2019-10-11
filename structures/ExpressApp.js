@@ -40,11 +40,11 @@ export function constructor (options) {
       app.all('/', function (req, res) {
         return baseFunction(req, res)
       })
-      console.log('[ExpressApp] Listening on port ' + options.port + '.')
+      console.log('[ExpressApp] Listening on port ' + options.port + '.\n')
       return resolve(app)
     }).on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        console.error('[Error:ExpressApp] Port ' + err.port + ' is already used. You must use a different port or stop applications that use this port.')
+        console.error('  !!! ERROR: Port ' + err.port + ' is already used. You must use a different port or stop applications that use this port.')
         process.exit(1)
       } else {
         console.error(err)
@@ -83,9 +83,11 @@ export function InitCommandHandler (options) {
   }
   console.log('[CommandHandler] Found ' + directories.length + ' route directories.')
   directories.forEach(dir => {
-    console.log('[' + dir + ']')
+    if (!options.minifyLogs) console.log('[' + dir + ']')
     const files = fs.readdirSync(options.routeLocation + dir).filter(f => isFile(options.routeLocation + dir + '/' + f)).filter(f => f.split('.')[f.split('.').length - 1] === 'js')
-    if (!files[0]) return console.log('      => Could not find any valid files.')
+    if (!files[0]) {
+      if (!options.minifyLogs) return console.log('      => Could not find any valid files.')
+    };
     endpoints[dir] = []
     const baseUrl = options.baseUrl || ''
     for (const filename of files) {
@@ -108,9 +110,9 @@ export function InitCommandHandler (options) {
         }
       }
       if (!file.config.enabled) {
-        console.log('      <' + nameWithoutExtension + '> - Information: Skipping file because it is deactivated.')
+        if (!options.minifyLogs) console.log('      <' + nameWithoutExtension + '> - Information: Skipping file because it is deactivated.')
       };
-      console.log(('      <' + nameWithoutExtension + '> Loading ' + file.routes.length + ' endpoints.').replace('1 endpoints', '1 endpoint'))
+      if (!options.minifyLogs) console.log(('      <' + nameWithoutExtension + '> Loading ' + file.routes.length + ' endpoints.').replace('1 endpoints', '1 endpoint'))
       for (const endpoint of file.routes) {
         if (!endpoint.name || !endpoint.run) continue
         try {
@@ -119,17 +121,18 @@ export function InitCommandHandler (options) {
           if (defaultVersion === dir) {
             app[endpoint.method.toLowerCase()](baseUrl + endpoint.name.slice(1), endpoint.run)
           };
-          console.log('      <' + nameWithoutExtension + '> => Loaded "' + endpoint.name + '" [' + endpoint.method + ']')
+          if (!options.minifyLogs) console.log('      <' + nameWithoutExtension + '> => Loaded "' + endpoint.name + '" [' + endpoint.method + ']')
           endpoints[dir].push(endpoint)
         } catch (err) {
-          console.log('      (' + endpoint.name + ') - Error: ' + err)
+          if (!options.minifyLogs) console.log('      (' + endpoint.name + ') - Error: ' + err)
         };
       };
     };
+    if (options.minifyLogs) console.log('  => [' + dir + '] Loaded ' + endpoints[dir].length + ' endpoints')
   })
   let count = 0
   Object.keys(endpoints).forEach(e => { count += endpoints[e].length })
-  console.log('[CommandHandler] Initialized. Total endpoints: ' + count)
+  console.log('  => Initialized. Total endpoints: ' + count + '\n')
   global.defaultVersion = defaultVersion
   return {
     status: 'OK',
