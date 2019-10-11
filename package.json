@@ -4,8 +4,10 @@
   "description": "Cosmetic server, used with fnbot-client.",
   "main": "index.js",
   "dependencies": {
+    "abab": "^2.0.2",
     "esm": "^3.2.25",
     "express": "^4.17.1",
+    "fetch-cookie": "^0.7.3",
     "node-fetch": "^2.6.0",
     "node-wick": "^2.2.0",
     "uuid": "^3.3.3"
