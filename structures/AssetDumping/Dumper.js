@@ -142,7 +142,11 @@ export async function process (paks, type, path, options) {
     if (data[0].export_type === 'Texture2D' && options.dumpIcons) {
       const tPath = './storage/icons/' + filename + '.png'
       if (!fs.existsSync(tPath)) {
-        read_texture_to_file('./storage/icons/' + filename, tPath)
+        if (mode === 'memory') {
+          fs.writeFileSync(tPath, asset.get_texture())
+        } else {
+          read_texture_to_file('./storage/assets/' + filename, tPath)
+        }
       };
       datafields.textures++
       return
@@ -153,7 +157,6 @@ export async function process (paks, type, path, options) {
         const ProcessedVariants = Helper.processVariants(d, filename, variants)
         variants = ProcessedVariants
       })
-      return
     };
     if (!assets[data[0].export_type]) assets[data[0].export_type] = {}
     const assetdata = Helper.AddAsset(data[0])
