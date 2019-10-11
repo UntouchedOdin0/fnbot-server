@@ -12,6 +12,7 @@ let config
 let cachedPaks = []
 let isDumping = false
 let serversOff = false
+let useKeychain = false
 
 function handleCmdArgs (argv) {
   const args = argv.slice(2)
@@ -42,10 +43,14 @@ if (!fs.existsSync('./config.json')) {
   config = FileManager.getConfig()
 };
 
+let minifyLogs = config.minifyLogs || true
+if (config.minifyLogs === false) minifyLogs = false
+
 config.routeinit = {
   defaultVersion: 'v1.1',
   routeLocation: './routes/',
-  baseUrl: '/api/'
+  baseUrl: '/api/',
+  minifyLogs: minifyLogs
 }
 
 const requiredPaths = ['./storage/', './storage/icons/']
@@ -59,7 +64,7 @@ requiredPaths.forEach(p => {
 })
 
 async function buildDump (firstTime) {
-  if (firstTime) console.log('[BuildDumper] Dumping build information from logs.')
+  if (firstTime) console.log('[BuildDumper] Dumping build information')
   const FNDump = BuildDumping.dumpFNBuild(config.builddumping.fnlogs)
   const LauncherDump = BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs)
   const obj = {
@@ -69,18 +74,29 @@ async function buildDump (firstTime) {
   if (global.build && JSON.stringify(obj) === JSON.stringify(global.build)) return
   global.build = obj
   fs.writeFileSync('./storage/build.json', JSON.stringify(obj))
-  if (firstTime) {
-    console.log('[BuildDumper] Dumped build information, works with ' + obj.fortnite.build + '.')
-  } else {
-    console.log('[BuildDumper] Updated build information, works with ' + obj.fortnite.build + '.')
-  };
+  let t = '[BuildDumper] Build updated\n  => Launcher Build: ' + obj.launcher.build + '\n  => Fortnite Build: ' + obj.fortnite.build + '\n  => Fortnite netCL: ' + obj.fortnite.netCL
+  if (firstTime) t = '  => Build dumped\n     => Launcher Build: ' + obj.launcher.build + '\n     => Fortnite Build: ' + obj.fortnite.build + '\n     => Fortnite netCL: ' + obj.fortnite.netCL
+  console.log(t + '\n')
+  return obj
 };
+
+function msToTime (duration) {
+  const milliseconds = parseInt((duration % 1000) / 100)
+  const seconds = Math.floor((duration / 1000) % 60)
+  const minutes = Math.floor((duration / (1000 * 60)) % 60)
+  if (minutes === 0) {
+    return seconds + '.' + milliseconds + ' seconds'
+  };
+  return minutes + ' minutes and ' + seconds + ' seconds'
+}
 
 async function assetDump (firstDump) {
   isDumping = true
   let aes
   let force = false
   let hasDumped = false
+  const startedAt = Date.now()
+  let endedAt = Date.now()
   let assets
   if (fs.existsSync('./storage/assets.json')) {
     assets = FileManager.getAssets()
@@ -91,20 +107,22 @@ async function assetDump (firstDump) {
     force = true
   };
   if (assets && global.build.fortnite.build === assets.build && !force && !global.arguments.forcedump && !global.arguments.fd) {
-    paks = await AssetDumping.getPakList('encrypted_only', aes, config.assetdumping.pakpath, false)
+    paks = await AssetDumping.getPakList('encrypted_only', aes, config.assetdumping.pakpath, false, useKeychain)
     config.assetdumping.build = global.build.fortnite.build
     if (((!paks.main || !paks.main[0]) && (!paks.encrypted || !paks.encrypted[0])) || !paks.encrypted.filter(pak => !cachedPaks.includes(pak.name))[0]) {
       hasDumped = false
     } else {
       paks.encrypted.filter(pak => !cachedPaks.includes(pak.name)).forEach(pak => cachedPaks.push(pak.name))
       hasDumped = true
+      console.log('[AssetDumper] Processing...')
       await AssetDumping.process(paks, 'encrypted_only', config.assetdumping.pakpath, config.assetdumping)
+      endedAt = Date.now()
     };
   };
   let totalAssets = 0
   if (assets) totalAssets = assets.skins.length + assets.emotes.length + assets.backpacks.length + assets.pickaxes.length
   if (!assets || global.build.fortnite.build !== assets.build || (aes && force) || totalAssets === 0 || global.arguments.forcedump || global.arguments.fd) {
-    paks = await AssetDumping.getPakList('all', aes, config.assetdumping.pakpath, force)
+    paks = await AssetDumping.getPakList('all', aes, config.assetdumping.pakpath, force, useKeychain)
     config.assetdumping.build = global.build.fortnite.build
     if (assets && global.build.fortnite.build !== assets.build) {
       cachedPaks = []
@@ -114,7 +132,9 @@ async function assetDump (firstDump) {
     } else {
       hasDumped = true
       paks.encrypted.filter(pak => !cachedPaks.includes(pak.name)).forEach(pak => cachedPaks.push(pak.name))
+      console.log('[AssetDumper] Processing...')
       await AssetDumping.process(paks, 'all', config.assetdumping.pakpath, config.assetdumping)
+      endedAt = Date.now()
     };
   };
   try {
@@ -137,7 +157,10 @@ async function assetDump (firstDump) {
     console.log('[Error] assets file is empty.')
     return process.exit(1)
   };
-  if (hasDumped) console.log('[AssetDumper] Successfully dumped. ' + totalAssets + ' items are now located in storage/assets.json.')
+  if (hasDumped) {
+    const time = msToTime(endedAt - startedAt)
+    console.log('  => Dump succeeded. Took ' + time + '.\n')
+  };
   isDumping = false
   // Removes dump forcing arguments after first dump.
   delete global.arguments.aes
@@ -153,19 +176,23 @@ ExpressInstance.constructor({
   ExpressInstance.updateState({ msg: 'Server is currently starting up and preparing assets.', code: 'preparing' })
   let skipassetdump; let skipbuilddump = false
   if (global.arguments.skipdump || global.arguments.sd || global.arguments.skipdumping) {
-    skipassetdump = true
-    skipbuilddump = true
+    skipassetdump = 'argument skipdump was used'
+    skipbuilddump = 'argument skipdump was used'
   };
   if (!config.assetdumping || !config.assetdumping.pakpath) {
-    skipassetdump = true
+    skipassetdump = 'no paths provided in the config'
   };
   if (!config.builddumping || !config.builddumping.fnlogs || !config.builddumping.launcherlogs) {
-    skipbuilddump = true
+    skipbuilddump = 'no paths provided in the config'
   };
   if (!skipbuilddump) {
     await buildDump(true)
   } else {
-    console.log('[BuildDumper] Skipping dump.')
+    if (typeof skipbuilddump === 'string') {
+      console.log('[BuildDumper] Skipping build dump because of: ' + skipbuilddump)
+    } else {
+      console.log('[BuildDumper] Skipping build dump.')
+    };
     try {
       global.build = FileManager.reloadBuild()
     } catch (err) {
@@ -184,9 +211,21 @@ ExpressInstance.constructor({
         config.assetdumping.pakpath = config.assetdumping.pakpath + '\\'
       };
     };
+    if (config.fortnite && config.fortnite.email && config.fortnite.password) {
+      console.log('[FortniteAuth] Logging in')
+      const res = await API.authorizeFortnite(config.fortnite.email, config.fortnite.password)
+      if (res && typeof res === 'string') {
+        console.log('  => Fortnite Authorization succeeded.\n')
+        useKeychain = true
+      };
+    };
     await assetDump(true)
   } else {
-    console.log('[AssetDumper] Skipping dump.')
+    if (typeof skipassetdump === 'string') {
+      console.log('[AssetDumper] Skipping asset dump because of: ' + skipassetdump)
+    } else {
+      console.log('[AssetDumper] Skipping asset dump.')
+    };
     try {
       global.assets = FileManager.getAssets()
     } catch (err) {
@@ -204,7 +243,7 @@ ExpressInstance.constructor({
   } catch (err) {
     global.exceptions = []
   };
-  const CommandHandler = await ExpressInstance.InitCommandHandler(config.routeinit)
+  const CommandHandler = ExpressInstance.InitCommandHandler(config.routeinit)
   if (CommandHandler.error) {
     console.log('[CommandHandler:Error] ' + CommandHandler.error + ' => ' + CommandHandler.msg)
     return process.exit(1)
@@ -258,7 +297,7 @@ ExpressInstance.constructor({
   };
   async function addHotfix () {
     const HotfixData = await API.getHotfix()
-    if (!HotfixData[0]) return
+    if (!HotfixData || !HotfixData.data || !HotfixData.data[0]) return
     const newAssets = {
       ...global.assets
     }
@@ -266,8 +305,8 @@ ExpressInstance.constructor({
     Object.keys(newAssets).filter(key => typeof newAssets[key] === 'object').forEach(k => {
       newAssets[k].filter(asset => asset.keys).forEach(asset => {
         Object.keys(asset.keys).forEach(key => {
-          if (HotfixData.filter(data => data.Key === asset.keys[key])[0]) {
-            const fixdata = HotfixData.filter(data => data.Key === asset.keys[key])[0]
+          if (HotfixData.data.filter(data => data.Key === asset.keys[key])[0]) {
+            const fixdata = HotfixData.data.filter(data => data.Key === asset.keys[key])[0]
             if (!skipassetdump && config.assetdumping.locales) {
               fixdata.LocalizedStrings = fixdata.LocalizedStrings.filter(data => config.assetdumping.locales.includes(data[0]))
             };
@@ -282,7 +321,7 @@ ExpressInstance.constructor({
       })
     })
     if (changes[0]) {
-      console.log('[Hotfix] New hotfix - Updated ' + changes.length + ' items: ' + changes.map(change => change.id).sort().join(', '))
+      console.log('[Hotfix] Hotfix ' + HotfixData.meta.hash + '\n  => Hotfix version: ' + HotfixData.meta.uploaded + '\n  => Updates: ' + changes.length + '\n  => Updated items: ' + changes.map(change => change.id).sort().join(', ') + '\n')
       global.assets = newAssets
       fs.writeFileSync('./storage/assets.json', JSON.stringify(newAssets))
     };
@@ -305,7 +344,8 @@ ExpressInstance.constructor({
     console.log('[Interval] Interval must be >=60000 to prevent spam and has now been set to 5 minutes.')
     interval = 300000
   };
-  console.log(('[Interval] Checking for updates every ' + formatTime(interval) + '.').replace('1 minutes', 'minute'))
+  console.log(('[Interval] Checking for updates every ' + formatTime(interval) + '.\n\n').replace('1 minutes', 'minute'))
+  console.log('=== Server is now ready. Time: ' + new Date() + ' ===\n\n')
   setInterval(async () => {
     await addHotfix()
     await checkFNStatus()
