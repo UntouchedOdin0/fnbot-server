@@ -11,6 +11,9 @@ export function dumpFNBuild (path) {
     const Data = fs.readFileSync(path, {
       encoding: 'utf8'
     })
+    if (!Data || !Data.split('Net CL: ')[1] || !Data.split('Build: ')[1] || !Data.split('Compatible Engine Version: ')[1]) {
+      return { dumpFailed: true }
+    };
     const prepareObj = {
       buildID: '1:1:' + Data.split('Net CL: ')[1].split('\r\n')[0],
       netCL: Data.split('Net CL: ')[1].split('\r\n')[0],
@@ -20,8 +23,7 @@ export function dumpFNBuild (path) {
     }
     return prepareObj
   } catch (err) {
-    console.error(err)
-    return { error: err }
+    return { dumpFailed: true }
   };
 };
 
@@ -36,6 +38,9 @@ export function dumpLauncherBuild (path) {
     const Data = fs.readFileSync(path, {
       encoding: 'utf8'
     })
+    if (!Data || !Data.split('Build: ')[1] || !Data.split('Engine Version: ')[1] || !Data.split('Net CL: ')[1]) {
+      return { dumpFailed: true }
+    };
     const prepareObj = {
       build: Data.split('Build: ')[1].split('\r\n')[0],
       engineVersion: Data.split('Engine Version: ')[1].split('\r\n')[0],
@@ -43,6 +48,6 @@ export function dumpLauncherBuild (path) {
     }
     return prepareObj
   } catch (err) {
-    return { error: err }
+    return { dumpFailed: true }
   };
 };

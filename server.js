@@ -67,6 +67,14 @@ async function buildDump (firstTime) {
   if (firstTime) console.log('[BuildDumper] Dumping build information')
   const FNDump = BuildDumping.dumpFNBuild(config.builddumping.fnlogs)
   const LauncherDump = BuildDumping.dumpLauncherBuild(config.builddumping.launcherlogs)
+  if (FNDump.dumpFailed || LauncherDump.dumpFailed) {
+    if (firstTime) {
+      console.log('  => Build dump failed. Seems like the log files are corrupted or not readable.\n')
+    } else {
+      console.log('[BuildDumper] Build updating failed. Seems like the log files are corrupted or not readable.')
+    };
+    return
+  };
   const obj = {
     fortnite: FNDump,
     launcher: LauncherDump
