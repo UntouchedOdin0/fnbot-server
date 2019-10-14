@@ -163,7 +163,7 @@ export async function processDump (paks, type, path, options) {
     if (assetdata) assets[data[0].export_type][filename] = assetdata
     datafields.items++
   })
-  if (mode === 'storage') {
+  if (mode === 'storage' && options.deleteFilesAfterDump !== false) {
     fs.readdir('./storage/assets/', (err, files) => {
       if (err) throw err
       for (const file of files) {
