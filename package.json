@@ -9,7 +9,7 @@
     "express": "^4.17.1",
     "fetch-cookie": "^0.7.3",
     "node-fetch": "^2.6.0",
-    "node-wick": "^2.2.0",
+    "node-wick": "^2.3.0",
     "uuid": "^3.3.3"
   },
   "engines": {
