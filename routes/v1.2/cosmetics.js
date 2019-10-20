@@ -46,6 +46,9 @@ export const routes = [{
     if (req.headers.query.toLowerCase() === 'random') {
       Match = Assets[type][Math.floor(Math.random() * Assets[type].length)]
     };
+    if (!Match && type === 'skins' && parseInt(req.headers.query)) {
+      Match = Assets[type].filter(a => a.id && a.id.toLowerCase().split('cid_')[1] && parseInt(a.id.toLowerCase().split('cid_')[1].split('_')[0]) && parseInt(a.id.toLowerCase().split('cid_')[1].split('_')[0]) === parseInt(req.headers.query))[0]
+    };
     if (Match) {
       Match.baseUrl = req.baseUrl
       const data = prepareObject(Match, req.baseUrl)
