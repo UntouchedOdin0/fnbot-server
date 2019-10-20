@@ -97,13 +97,13 @@ export const routes = [{
     if (!item) return res.status(404).json({ statusCode: 404, data: null, msg: 'invalid_item' })
     if (!item.variants || !item.variants[0]) return res.status(404).json({ statusCode: 404, data: null, msg: 'no_results' })
     const Match = (
-      item.variants.filter(t => t.tags.filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0])[0] || // Name match
-      item.variants.filter(t => t.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0])[0] // ID match
+      item.variants.filter(t => t.tags.filter(a => a.name && Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0])[0] || // Name match
+      item.variants.filter(t => t.tags.filter(a => a.tag && a.tag.toLowerCase() === req.headers.query.toLowerCase())[0])[0] // ID match
     )
     if (Match) {
       const MatchTag = (
-        Match.tags.filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] ||
-        Match.tags.filter(a => a.tag.toLowerCase() === req.headers.query.toLowerCase())[0]
+        Match.tags.filter(a => a.name && Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] ||
+        Match.tags.filter(a => a.tag && a.tag.toLowerCase() === req.headers.query.toLowerCase())[0]
       )
       return res.status(200).json({ statusCode: 200, data: { parent: item.id, channel: Match.channel, tag: MatchTag.tag, name: MatchTag.name } })
     };
