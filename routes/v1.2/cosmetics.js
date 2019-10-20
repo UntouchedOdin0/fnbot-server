@@ -40,8 +40,8 @@ export const routes = [{
     if (!types(req.headers.type)) return res.status(400).json({ statusCode: 400, msg: 'Invalid type' })
     const type = types(req.headers.type)
     let Match = (
-      Assets[type].filter(a => Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] || // Name match
-      Assets[type].filter(a => a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
+      Assets[type].filter(a => a.name && Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0] || // Name match
+      Assets[type].filter(a => a.id && a.id.toLowerCase() === req.headers.query.toLowerCase())[0] // ID match
     )
     if (req.headers.query.toLowerCase() === 'random') {
       Match = Assets[type][Math.floor(Math.random() * Assets[type].length)]
@@ -93,12 +93,12 @@ export const routes = [{
     if (!req.headers || !req.headers.type) return res.status(400).json({ statusCode: 400, msg: 'Missing header type' })
     if (!types(req.headers.type)) return res.status(400).json({ statusCode: 400, msg: 'Invalid type' })
     const type = types(req.headers.type)
-    const item = Assets[type].filter(a => a.id === req.headers.item.toLowerCase())[0]
+    const item = Assets[type].filter(a => a.id && a.id === req.headers.item.toLowerCase())[0]
     if (!item) return res.status(404).json({ statusCode: 404, data: null, msg: 'invalid_item' })
     if (!item.variants || !item.variants[0]) return res.status(404).json({ statusCode: 404, data: null, msg: 'no_results' })
     const Match = (
-      item.variants.filter(t => t.tags.filter(a => a.name && Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0])[0] || // Name match
-      item.variants.filter(t => t.tags.filter(a => a.tag && a.tag.toLowerCase() === req.headers.query.toLowerCase())[0])[0] // ID match
+      item.variants.filter(t => t.tags && t.tags.filter(a => a.name && Object.keys(a.name).filter(b => a.name[b].toLowerCase() === req.headers.query.toLowerCase())[0])[0])[0] || // Name match
+      item.variants.filter(t => t.tags && t.tags.filter(a => a.tag && a.tag.toLowerCase() === req.headers.query.toLowerCase())[0])[0] // ID match
     )
     if (Match) {
       const MatchTag = (
